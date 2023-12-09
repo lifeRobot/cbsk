@@ -19,7 +19,7 @@ log = { version = "0.4.20", optional = true }
 async-trait = { version = "0.1.74", optional = true }
 async-recursion = { version = "1.0.5", optional = true }
 
-cbsk_mut_data = { path = "../cbsk_mut_data", default-features = false, optional = true }
+cbsk_mut_data = { version = "0.1.1", default-features = false, optional = true }
 
 [features]
 tokio_full = ["tokio/full"]
@@ -27,4 +27,4 @@ serde_derive = ["serde/derive"]
 serde_all = ["serde_derive", "serde_json", "serde/rc"]
 
 macro = []
-async_pool = ["tokio_full", "once_cell", "log", "cbsk_mut_data/vec"]
+async_pool = ["tokio_full", "once_cell", "log", "cbsk_mut_data/vec", "macro"]

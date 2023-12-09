@@ -83,7 +83,7 @@ Cargo.toml file :
 
 ```toml
 once_cell = "1.19.0"
-cbsk_mut_data = "0.1.0"
+cbsk_mut_data = "0.1.1"
 ```
 
 main.rs file :

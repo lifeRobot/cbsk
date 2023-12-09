@@ -75,6 +75,7 @@ macro_rules! impl_as_ref {
     };
 }
 
+/// support default
 #[macro_export]
 macro_rules! impl_default {
     ([$($g:ident),*],$t:ty,$def:expr) => {
