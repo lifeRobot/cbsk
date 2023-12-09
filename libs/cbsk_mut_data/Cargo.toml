@@ -1,0 +1,22 @@
+[package]
+name = "cbsk_mut_data"
+version = "0.1.0"
+edition = "2021"
+description = "cbsk_mut_data is a ref mut tool"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures"]
+keywords = ["ref", "mut", "data", "static"]
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+
+[features]
+default = ["vec", "hash_map"]
+macro = []
+ref = ["macro"]
+obj = ["ref"]
+vec = ["obj"]
+hash_map = ["obj"]

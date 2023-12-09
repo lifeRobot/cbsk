@@ -1,0 +1,85 @@
+cbsk_mut_data is a ref mut tool  
+you can use cbsk_mut_data for static data modification, etc  
+the idea for this cargo crate comes
+from [dark-std](https://crates.io/crates/dark-std)([github](github.com/darkrpc/dark-std))  
+this cargo crate may be unsafe, if you want safe data, you can
+use [dark-std](https://crates.io/crates/dark-std)([github](github.com/darkrpc/dark-std))
+
+#### data type
+
+* MutDataObj
+* MutDataVec
+* MutDataHashMap  
+  **more type welcome to submit issue**
+
+#### Simple Example
+
+Cargo.toml file :
+
+```toml
+cbsk_mut_data = "0.1.0"
+```
+
+main.rs file :
+
+```rust
+use cbsk_mut_data::mut_data_obj::MutDataObj;
+
+fn main() {
+    let b = MutDataObj::new(true);
+    println!("b is {b}");// b is true
+    b.set(false);
+    println!("b is {b}");// b is false
+    b.trigger();
+    println!("b is {b}");// b is true
+}
+```
+
+main.rs file(use struct) :
+
+```rust
+use cbsk_mut_data::mut_data_obj::MutDataObj;
+
+#[derive(Default, Debug)]
+struct A {
+    data: MutDataObj<i32>,
+}
+
+fn main() {
+    let a = A::default();
+    println!("a is {a:?}");// a is A { data: 0 }
+    a.data.set(10);
+    println!("a is {a:?}");// a is A { data: 10 }
+}
+
+```
+
+#### OnceCell Example
+
+Cargo.toml file :
+
+```toml
+once_cell = "1.19.0"
+cbsk_mut_data = "0.1.0"
+```
+
+main.rs file :
+
+```rust
+use cbsk_mut_data::mut_data_obj::MutDataObj;
+use once_cell::sync::Lazy;
+
+pub static B: Lazy<MutDataObj<bool>> = Lazy::new(MutDataObj::default);
+
+fn main() {
+    println!("b is {}", B.as_ref());// b is false
+    B.set(true);
+    println!("b is {}", B.as_ref());// b is true
+    B.trigger();
+    println!("b is {}", B.as_ref());// b is false
+}
+```
+
+#### Thanks
+
+* [dark-std](https://crates.io/crates/dark-std)([github](github.com/darkrpc/dark-std))
