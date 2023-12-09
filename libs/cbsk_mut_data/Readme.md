@@ -17,7 +17,7 @@ use [dark-std](https://crates.io/crates/dark-std)([github](github.com/darkrpc/da
 Cargo.toml file :
 
 ```toml
-cbsk_mut_data = "0.1.0"
+cbsk_mut_data = "0.1.1"
 ```
 
 main.rs file :
@@ -100,6 +100,39 @@ fn main() {
     println!("b is {}", B.as_ref());// b is true
     B.trigger();
     println!("b is {}", B.as_ref());// b is false
+}
+```
+
+#### Unsafe Example
+
+Cargo.toml file :
+
+```toml
+cbsk_mut_data = "0.1.1"
+```
+
+main.rs file :
+
+```rust
+use std::sync::Arc;
+use cbsk_mut_data::mut_data_obj::MutDataObj;
+use cbsk_mut_data::mut_data_ref::MutDataRef;
+
+fn main() {
+    // unsafe example
+    let mut a = MutDataRef::new(&mut 0);
+    println!("a is {a:?}");// a is 0
+    let b = a.clone();
+    *a = 10;
+    println!("b is {b:?}");// b is 10
+
+    // mut arc
+    // mut arc may have many scenarios and can be very useful, but it is not recommended for you to use it this way
+    let c = Arc::new(MutDataObj::new(0));
+    println!("c is {c:?}");// c is 0
+    let d = c.clone();
+    c.set(10);
+    println!("d is {d:?}");// d is 10
 }
 ```
 
