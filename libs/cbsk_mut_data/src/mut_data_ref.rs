@@ -27,7 +27,7 @@ impl<T> MutDataRef<T> {
 /// deconstruct multiple data
 impl<Q, T: DerefMut<Target=Q>> MutDataRef<T> {
     /// deconstruct multiple data<br />
-    /// if your data is [MutDataRef<MutDataRef<T>>], you can call this method to convert it to [MutDataRef<T>]
+    /// if your data is [`MutDataRef<MutDataRef<T>>`], you can call this method to convert it to [`MutDataRef<T>`]
     pub fn to_short(&mut self) -> MutDataRef<Q> {
         MutDataRef::new(self.deref_mut().deref_mut())
     }

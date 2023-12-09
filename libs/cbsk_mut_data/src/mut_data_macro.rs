@@ -34,7 +34,7 @@ macro_rules! impl_debug {
         }
     };
     ($g:ident,$t:ty) => {
-        crate::impl_debug!([$g],$t);
+        $crate::impl_debug!([$g],$t);
     };
 }
 
@@ -44,7 +44,7 @@ macro_rules! impl_debug_display {
     ([$($g:ident),*],$t:ty) => {
         use std::fmt::Display;
 
-        crate::impl_debug!([$($g),*],$t);
+        $crate::impl_debug!([$($g),*],$t);
 
         /// support display
         impl<$($g: Display),*> Display for $t {
@@ -71,6 +71,25 @@ macro_rules! impl_as_ref {
         }
     };
     ($g:ident,$e:ty,$t:ty) => {
-        crate::impl_as_ref!([$g],$e,$t);
-    }
+        $crate::impl_as_ref!([$g],$e,$t);
+    };
+}
+
+#[macro_export]
+macro_rules! impl_default {
+    ([$($g:ident),*],$t:ty,$def:expr) => {
+        /// support default
+        impl<$($g),*> Default for $t {
+            fn default() -> Self { $def }
+        }
+    };
+    ($g:ident,$t:ty,$def:expr) => {
+        $crate::impl_default!([$g],$t,$def);
+    };
+    // $g default impl Default
+    ($g:ident =>,$t:ty,$def:expr) => {
+        impl<$g: Default> Default for $t {
+            fn default() -> Self { $def }
+        }
+    };
 }

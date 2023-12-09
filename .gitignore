@@ -1,3 +1,5 @@
 /target
 /.idea
 /libs/*/.idea
+/libs/*/.cargo
+/libs/*/Cargo.lock

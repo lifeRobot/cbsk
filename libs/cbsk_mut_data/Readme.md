@@ -35,7 +35,7 @@ fn main() {
 }
 ```
 
-main.rs file(use struct) :
+main.rs file (use struct) :
 
 ```rust
 use cbsk_mut_data::mut_data_obj::MutDataObj;
@@ -52,6 +52,29 @@ fn main() {
     println!("a is {a:?}");// a is A { data: 10 }
 }
 
+```
+
+main.rs file (in struct)
+
+```rust
+use cbsk_mut_data::mut_data_obj::MutDataObj;
+
+#[derive(Default, Debug)]
+struct A {
+    b: MutDataObj<B>,
+}
+
+#[derive(Default, Debug)]
+struct B {
+    data: i32,
+}
+
+fn main() {
+    let a = A::default();
+    println!("a is {a:?}");// a is A { b: B { data: 0 } }
+    a.b.as_mut().data = 10;
+    println!("a is {a:?}");// a is A { b: B { data: 10 } }
+}
 ```
 
 #### OnceCell Example

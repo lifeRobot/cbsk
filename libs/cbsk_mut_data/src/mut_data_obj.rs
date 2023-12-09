@@ -73,13 +73,7 @@ impl MutDataObj<bool> {
 crate::impl_sync_send!(T,MutDataObj<T>);
 crate::impl_debug_display!(T,MutDataObj<T>);
 crate::impl_as_ref!(T,T,MutDataObj<T>);
-
-/// support default
-impl<T: Default> Default for MutDataObj<T> {
-    fn default() -> Self {
-        Self::new(T::default())
-    }
-}
+crate::impl_default!(T =>,MutDataObj<T>,Self::new(T::default()));
 
 /// support deref
 impl<T> Deref for MutDataObj<T> {

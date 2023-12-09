@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_mut_data"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "cbsk_mut_data is a ref mut tool"
 readme = "Readme.md"
@@ -8,6 +8,7 @@ authors = ["The cbsk developers"]
 license = "MIT/Apache-2.0"
 categories = ["data-structures"]
 keywords = ["ref", "mut", "data", "static"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_mut_data"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

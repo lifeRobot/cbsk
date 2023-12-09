@@ -4,7 +4,6 @@ use crate::mut_data_obj::MutDataObj;
 use crate::mut_data_ref::MutDataRef;
 
 /// ref mut vec
-#[derive(Default)]
 pub struct MutDataVec<T> {
     /// mut data
     data: MutDataObj<Vec<T>>,
@@ -73,6 +72,7 @@ impl<T> MutDataVec<T> {
 crate::impl_sync_send!(T,MutDataVec<T>);
 crate::impl_debug!(T,MutDataVec<T>);
 crate::impl_as_ref!(T,Vec<T>,MutDataVec<T>);
+crate::impl_default!(T,MutDataVec<T>,Self { data: MutDataObj::default() });
 
 /// support deref
 impl<T> Deref for MutDataVec<T> {

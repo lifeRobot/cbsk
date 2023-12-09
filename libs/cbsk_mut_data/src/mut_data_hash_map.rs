@@ -7,7 +7,6 @@ use crate::mut_data_obj::MutDataObj;
 use crate::mut_data_ref::MutDataRef;
 
 /// ref mut hash map
-#[derive(Default)]
 pub struct MutDataHashMap<K, V> {
     data: MutDataObj<HashMap<K, V>>,
 }
@@ -86,6 +85,7 @@ impl<K, V> MutDataHashMap<K, V> {
 crate::impl_sync_send!([K,V],MutDataHashMap<K,V>);
 crate::impl_debug!([K,V],MutDataHashMap<K,V>);
 crate::impl_as_ref!([K,V],HashMap<K,V>,MutDataHashMap<K,V>);
+crate::impl_default!([K,V],MutDataHashMap<K,V>,Self { data: MutDataObj::default() });
 
 /// support deref
 impl<K, V> Deref for MutDataHashMap<K, V> {
