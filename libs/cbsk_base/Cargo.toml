@@ -24,7 +24,9 @@ cbsk_mut_data = { version = "0.1.1", default-features = false, optional = true }
 [features]
 tokio_full = ["tokio/full"]
 serde_derive = ["serde/derive"]
-serde_all = ["serde_derive", "serde_json", "serde/rc"]
+serde_derive_json = ["serde_derive", "serde_json"]
+serde_all = ["serde_derive_json", "serde/rc"]
 
 macro = []
 async_pool = ["tokio_full", "once_cell", "log", "cbsk_mut_data/vec", "macro"]
+result = ["macro"]
