@@ -17,8 +17,7 @@ pub use async_recursion;
 
 #[cfg(feature = "macro")]
 pub mod r#macro;
-#[cfg(feature = "async_pool")]
-pub mod async_pool;
 #[cfg(feature = "serde")]
 pub mod json;
+#[cfg(feature = "result")]
 pub mod result;

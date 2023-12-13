@@ -1,0 +1,13 @@
+[package]
+name = "cbsk_run"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cbsk_base = { path = "../cbsk_base", optional = true }
+cbsk_mut_data = { version = "0.1.1", optional = true }
+
+[features]
+async_pool = ["cbsk_base/tokio_full", "cbsk_base/once_cell", "cbsk_base/log", "cbsk_base/macro", "cbsk_mut_data"]
