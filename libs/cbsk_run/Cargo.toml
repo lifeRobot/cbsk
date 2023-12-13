@@ -2,12 +2,20 @@
 name = "cbsk_run"
 version = "0.1.0"
 edition = "2021"
+description = "cbsk_run is async pool tool"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["asynchronous"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_run"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { path = "../cbsk_base", optional = true }
+cbsk_base = { version = "0.1.0", optional = true }
 cbsk_mut_data = { version = "0.1.1", optional = true }
 
 [features]
+default = ["async_pool", "run"]
 async_pool = ["cbsk_base/tokio_full", "cbsk_base/once_cell", "cbsk_base/log", "cbsk_base/macro", "cbsk_mut_data"]
+run = ["cbsk_base/tokio_full", "cbsk_base/anyhow"]
