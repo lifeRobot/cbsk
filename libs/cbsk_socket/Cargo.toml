@@ -6,3 +6,10 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+cbsk_base = { version = "0.1.0", features = ["serde_derive_json", "async-trait"] }
+cbsk_run = { version = "0.1.0", default-features = false, features = ["async_pool"] }
+cbsk_mut_data = { version = "0.1.1", default-features = false, features = ["obj"] }
+
+[features]
+tcp_server = []
+tcp_client = []
