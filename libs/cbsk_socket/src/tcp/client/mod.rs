@@ -73,6 +73,11 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         // 只要调用过shutdown，都直接将写置空
         self.write.set(None);
     }
+
+    /// get has the tcp server connection been success
+    pub fn is_connected(&self) -> bool {
+        self.write.is_some()
+    }
 }
 
 /// tcp read logic
