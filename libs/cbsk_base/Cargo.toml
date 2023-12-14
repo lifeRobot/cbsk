@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_base"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 description = "cbsk_base is a locked version cargo crates"
 readme = "Readme.md"
@@ -32,3 +32,4 @@ serde_all = ["serde_derive_json", "serde/rc"]
 
 macro = []
 result = ["macro", "serde_derive_json"]
+root_path = []

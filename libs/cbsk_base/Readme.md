@@ -24,7 +24,7 @@ the struct impl Deserialize, will auto impl FromJson
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "0.1.0", features = ["serde_derive_json"] }
+cbsk_base = { version = "0.1.1", features = ["serde_derive_json"] }
 ```
 
 main.rs file :
@@ -55,7 +55,7 @@ fn main() {
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "0.1.0", features = ["macro", "anyhow"] }
+cbsk_base = { version = "0.1.1", features = ["macro", "anyhow"] }
 ```
 
 main.rs file :
@@ -88,5 +88,23 @@ fn exec_option() {
         return;
     });
     println!("a is {a}");// a is hello world
+}
+```
+
+### root_path example
+
+Cargo.toml file:
+
+```toml
+cbsk_base = { version = "0.1.1", features = ["root_path"] }
+```
+
+main.rs file:
+
+```rust
+fn main() {
+    // print the path where the program is located
+    let root_path = cbsk_base::root_path();
+    println!("root path is {root_path}");
 }
 ```
