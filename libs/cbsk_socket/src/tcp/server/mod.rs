@@ -74,16 +74,16 @@ impl<C: TcpServerCallBack> TcpServer<C> {
         let (read, write) = tcp_stream.into_split();
 
         let client = Arc::new(TcpServerClient::new(addr, self.conf.as_ref(), write));
-        self.read_spawn::<N>(client.clone(), read);
-        self.cb.conn(client).await;
+        let handle = self.read_spawn::<N>(client.clone(), read);
+        self.cb.conn(client, handle).await;
 
         Ok(())
     }
 
     /// start read async
-    fn read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) {
+    fn read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) -> JoinHandle<()> {
         let tcp_server = self.clone();
-        cbsk_run::async_pool::push(async move {
+        tokio::spawn(async move {
             if let Err(e) = tcp_server.try_read_spawn::<N>(client.clone(), read).await {
                 if tcp_server.conf.log { log::error!("{} read tcp client data error: {e:?}",client.log_head); }
             }
@@ -115,7 +115,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
 
             // get data and log println
             let buf = &buf[0..len];
-            log::debug!("{}TCP read data[{buf:?}] of length {len}",client.log_head);
+            log::debug!("{} TCP read data[{buf:?}] of length {len}",client.log_head);
             buf_tmp.append(&mut buf.to_vec());
             buf_tmp = self.cb.recv(buf_tmp, client.clone()).await;
         }

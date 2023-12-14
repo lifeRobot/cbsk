@@ -2,14 +2,20 @@
 name = "cbsk_socket"
 version = "0.1.0"
 edition = "2021"
+description = "cbsk_socket is a socket callback tool"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures", "asynchronous"]
+keywords = ["socket", "tcp", "ws", "websocket", "callback"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { version = "0.1.0", features = ["serde_derive_json", "async-trait"] }
-cbsk_run = { path = "../cbsk_run", default-features = false, features = ["async_pool"] }
+cbsk_base = { version = "0.1.0", features = ["tokio_full", "serde_derive_json", "async-trait", "anyhow", "log"] }
 cbsk_mut_data = { version = "0.1.1", default-features = false, features = ["obj"] }
 
 [features]
 tcp_server = []
-tcp_client = []
+tcp_client = ["cbsk_base/async-recursion"]

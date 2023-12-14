@@ -12,22 +12,22 @@ pub struct TcpServerClient {
     /// internal log name
     pub log_head: String,
     /// tcp client write
-    writer: Arc<MutDataObj<OwnedWriteHalf>>,
+    write: Arc<MutDataObj<OwnedWriteHalf>>,
 }
 
 /// custom method
 impl TcpServerClient {
     /// create tcp server client
     pub(crate) fn new(addr: SocketAddr, conf: &TcpServerConfig, writer: OwnedWriteHalf) -> Self {
-        let log_head = format!("{}TCP客户端[{}]", conf.name, addr);
-        Self { addr, log_head, writer: MutDataObj::new(writer).into() }
+        let log_head = format!("{} tcp client[{}]", conf.name, addr);
+        Self { addr, log_head, write: MutDataObj::new(writer).into() }
     }
 }
 
 /// support writer trait
 impl WriteTrait for TcpServerClient {
     fn try_get_write(&self) -> cbsk_base::anyhow::Result<&MutDataObj<OwnedWriteHalf>> {
-        Ok(self.writer.as_ref())
+        Ok(self.write.as_ref())
     }
 
     fn get_log_head(&self) -> &str {
