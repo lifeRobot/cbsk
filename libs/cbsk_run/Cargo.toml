@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_run"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 description = "cbsk_run is async pool tool"
 readme = "Readme.md"
@@ -18,4 +18,4 @@ cbsk_mut_data = { version = "0.1.1", default-features = false, optional = true }
 [features]
 default = ["async_pool", "run"]
 async_pool = ["cbsk_base/tokio_full", "cbsk_base/once_cell", "cbsk_base/log", "cbsk_base/macro", "cbsk_mut_data/vec"]
-run = ["cbsk_base/tokio_full", "cbsk_base/anyhow"]
+run = ["cbsk_base/tokio_full", "cbsk_base/anyhow", "cbsk_base/log"]
