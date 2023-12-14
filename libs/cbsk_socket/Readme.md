@@ -16,7 +16,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.10"
 cbsk_base = { version = "0.1.0" }
-cbsk_socket = { version = "0.1.1", features = ["tcp_server"] }
+cbsk_socket = { version = "0.1.2", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -77,7 +77,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.10"
 cbsk_base = { version = "0.1.0" }
-cbsk_socket = { version = "0.1.1", features = ["tcp_client"] }
+cbsk_socket = { version = "0.1.2", features = ["tcp_client"] }
 ```
 
 main.rs file:
@@ -113,6 +113,8 @@ async fn main() {
                 tcp_client.send_text("hello world").await;
                 tcp_client.send_json(&"hello world".to_string()).await;
             }
+
+            tokio::time::sleep(Duration::from_secs(3)).await;
         }
     });
 

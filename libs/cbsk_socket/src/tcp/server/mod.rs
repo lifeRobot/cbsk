@@ -46,21 +46,30 @@ impl<C: TcpServerCallBack> TcpServer<C> {
         let tcp_server = self.clone();
         tokio::spawn(async move {
             let conf = tcp_server.conf.clone();
-            if let Err(e) = Self::try_start::<N>(tcp_server).await {
+            let mut read_handles = Vec::new();
+
+            if let Err(e) = Self::try_start::<N>(tcp_server.clone(), &mut read_handles).await {
                 log::error!("{} tcp bind [{}] error: {e:?}",conf.log_head,conf.addr);
+            }
+
+            // wait read async
+            for handle in read_handles {
+                if let Err(e) = handle.await {
+                    log::error!("{} read async error: {e:?}",conf.log_head);
+                }
             }
         })
     }
 
     /// try start tcp server
-    async fn try_start<const N: usize>(tcp_server: Self) -> io::Result<()> {
+    async fn try_start<const N: usize>(tcp_server: Self, read_handles: &mut Vec<JoinHandle<()>>) -> io::Result<()> {
         let listener = TcpListener::bind(tcp_server.conf.addr).await?;
         let conf = tcp_server.conf.as_ref();
 
         log::info!("{} listener TCP[{}] success",conf.log_head,conf.addr);
         // Loop waiting for client to connect
         loop {
-            if let Err(e) = tcp_server.try_accept::<N>(&listener).await {
+            if let Err(e) = tcp_server.try_accept::<N>(&listener, read_handles).await {
                 log::error!("{} wait tcp accept error. wait for the next accept in three seconds. error: {:?}",conf.log_head,e);
                 tokio::time::sleep(Duration::from_secs(3)).await;
             }
@@ -68,14 +77,14 @@ impl<C: TcpServerCallBack> TcpServer<C> {
     }
 
     /// try accept TCP client and read tcp client data
-    async fn try_accept<const N: usize>(&self, listener: &TcpListener) -> io::Result<()> {
+    async fn try_accept<const N: usize>(&self, listener: &TcpListener, read_handles: &mut Vec<JoinHandle<()>>) -> io::Result<()> {
         // tcp client come in, stream split to read and write
         let (tcp_stream, addr) = listener.accept().await?;
         let (read, write) = tcp_stream.into_split();
 
         let client = Arc::new(TcpServerClient::new(addr, self.conf.as_ref(), write));
-        let handle = self.read_spawn::<N>(client.clone(), read);
-        self.cb.conn(client, handle).await;
+        read_handles.push(self.read_spawn::<N>(client.clone(), read));
+        self.cb.conn(client).await;
 
         Ok(())
     }
