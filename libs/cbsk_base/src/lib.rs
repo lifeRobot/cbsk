@@ -21,6 +21,7 @@ pub mod r#macro;
 pub mod json;
 #[cfg(feature = "result")]
 pub mod result;
+pub mod convert;
 
 /// get the directory where the program is located
 pub fn root_path() -> String {
