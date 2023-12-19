@@ -38,7 +38,7 @@ crate::impl_debug_display!(T,MutDataRef<T>);
 crate::impl_as_ref!(T,T,MutDataRef<T>);
 
 /// support clone
-impl<T: Clone> Clone for MutDataRef<T> {
+impl<T> Clone for MutDataRef<T> {
     fn clone(&self) -> Self {
         Self { data: self.data.clone() }
     }

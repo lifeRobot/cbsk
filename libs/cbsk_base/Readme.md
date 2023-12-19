@@ -24,7 +24,7 @@ the struct impl Deserialize, will auto impl FromJson
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "0.1.1", features = ["serde_derive_json"] }
+cbsk_base = { version = "0.1.2", features = ["serde_derive_json"] }
 ```
 
 main.rs file :
@@ -55,7 +55,7 @@ fn main() {
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "0.1.1", features = ["macro", "anyhow"] }
+cbsk_base = { version = "0.1.2", features = ["macro", "anyhow"] }
 ```
 
 main.rs file :
@@ -96,7 +96,7 @@ fn exec_option() {
 Cargo.toml file:
 
 ```toml
-cbsk_base = { version = "0.1.1", features = ["root_path"] }
+cbsk_base = { version = "0.1.2", features = ["root_path"] }
 ```
 
 main.rs file:
