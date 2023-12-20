@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::collections::hash_map::Entry;
 use std::collections::HashMap;
 use std::hash::Hash;
@@ -21,7 +22,9 @@ impl<K: Eq + Hash, V> MutDataHashMap<K, V> {
 
     /// get mut data<br />
     /// more see [HashMap::get_mut]
-    pub fn get_mut(&self, key: &K) -> Option<MutDataRef<V>> {
+    pub fn get_mut<Q>(&self, key: &Q) -> Option<MutDataRef<V>>
+        where K: Borrow<Q>,
+              Q: Hash + Eq + ?Sized {
         self.as_mut().get_mut(key).map(MutDataRef::new_ref)
     }
 
