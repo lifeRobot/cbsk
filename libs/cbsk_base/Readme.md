@@ -6,13 +6,13 @@ cbsk_base also supports some custom trait, like ToJson,FromJson and some macro
 
 | name                                                        | git                                                 | version |  
 |-------------------------------------------------------------|-----------------------------------------------------|---------|
-| [tokio](https://crates.io/crates/tokio)                     | [github](https://github.com/tokio-rs/tokio)         | 1.35.0  |
-| [anyhow](https://crates.io/crates/anyhow)                   | [github](https://github.com/dtolnay/anyhow)         | 1.0.75  |
+| [tokio](https://crates.io/crates/tokio)                     | [github](https://github.com/tokio-rs/tokio)         | 1.35.1  |
+| [anyhow](https://crates.io/crates/anyhow)                   | [github](https://github.com/dtolnay/anyhow)         | 1.0.76  |
 | [once_cell](https://crates.io/crates/once_cell)             | [github](https://github.com/matklad/once_cell)      | 1.9.0   |
 | [serde](https://crates.io/crates/serde)                     | [github](https://github.com/serde-rs/serde)         | 1.0.193 |
 | [serde_json](https://crates.io/crates/serde_json)           | [github](https://github.com/serde-rs/json)          | 1.0.193 |
 | [log](https://crates.io/crates/log)                         | [github](https://github.com/rust-lang/log)          | 0.4.20  |
-| [async-trait](https://crates.io/crates/async-trait)         | [github](https://github.com/dtolnay/async-trait)    | 0.1.74  |
+| [async-trait](https://crates.io/crates/async-trait)         | [github](https://github.com/dtolnay/async-trait)    | 0.1.75  |
 | [async-recursion](https://crates.io/crates/async-recursion) | [github](https://github.com/dcchut/async-recursion) | 1.0.5   |
 
 ### serde example

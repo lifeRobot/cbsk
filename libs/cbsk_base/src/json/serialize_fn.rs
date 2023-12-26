@@ -25,3 +25,10 @@ pub fn number_to_bool<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool
     // 默认返回false
     Ok(false)
 }
+
+/// if str equal 1, return Ok(true), else return Ok(false)<br />
+/// if value not str, will be return Err
+#[cfg(feature = "serde_json")]
+pub fn str_to_bool<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
+    Ok(String::deserialize(deserializer)?.eq("1"))
+}
