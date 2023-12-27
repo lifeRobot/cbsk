@@ -32,3 +32,9 @@ pub fn number_to_bool<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool
 pub fn str_to_bool<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool, D::Error> {
     Ok(String::deserialize(deserializer)?.eq("1"))
 }
+
+/// if deserialize err, return Ok("".to_string()), else return Ok(String)
+#[cfg(feature = "serde_json")]
+pub fn str_or_default<'de, D: Deserializer<'de>>(deserializer: D) -> Result<String, D::Error> {
+    Ok(String::deserialize(deserializer).unwrap_or_default())
+}
