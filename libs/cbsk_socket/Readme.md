@@ -2,6 +2,10 @@ cbsk_socket is a socket callback tool
 you can use cbsk_socket create tcp server or tcp client, you don't need to focus on TCP read and write, just focus on
 business processing
 
+### minimum supported Rust version
+
+Rust 1.75.0
+
 ### now supported sockets
 
 * tcp client √
@@ -14,9 +18,9 @@ business processing
 Cargo.toml file:
 
 ```toml
-fast_log = "1.6.10"
-cbsk_base = { version = "0.1.2" }
-cbsk_socket = { version = "0.1.5", features = ["tcp_server"] }
+fast_log = "1.6.12"
+cbsk_base = { version = "0.1.4" }
+cbsk_socket = { version = "0.2.0", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -24,7 +28,6 @@ main.rs file:
 ```rust
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
-use cbsk_base::async_trait::async_trait;
 use cbsk_base::{log, tokio};
 use cbsk_socket::tcp::server::callback::TcpServerCallBack;
 use cbsk_socket::tcp::server::client::TcpServerClient;
@@ -55,7 +58,6 @@ async fn main() {
 pub struct TcpServerBusiness {}
 
 /// business callback
-#[async_trait]
 impl TcpServerCallBack for TcpServerBusiness {
     async fn recv(&self, bytes: Vec<u8>, client: Arc<TcpServerClient>) -> Vec<u8> {
         println!("{} read bytes [{bytes:?}]", client.log_head);
@@ -75,9 +77,9 @@ impl TcpServerCallBack for TcpServerBusiness {
 Cargo.toml file:
 
 ```toml
-fast_log = "1.6.10"
-cbsk_base = { version = "0.1.2" }
-cbsk_socket = { version = "0.1.5", features = ["tcp_client"] }
+fast_log = "1.6.12"
+cbsk_base = { version = "0.1.4" }
+cbsk_socket = { version = "0.2.0", features = ["tcp_client"] }
 ```
 
 main.rs file:
@@ -86,7 +88,6 @@ main.rs file:
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
 use cbsk_base::{log, tokio};
-use cbsk_base::async_trait::async_trait;
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::client::callback::TcpClientCallBack;
 use cbsk_socket::tcp::client::config::TcpClientConfig;
@@ -130,7 +131,6 @@ async fn main() {
 pub struct TcpClientBusiness {}
 
 /// business callback
-#[async_trait]
 impl TcpClientCallBack for TcpClientBusiness {
     async fn recv(&self, bytes: Vec<u8>) -> Vec<u8> {
         println!("read bytes [{bytes:?}]");

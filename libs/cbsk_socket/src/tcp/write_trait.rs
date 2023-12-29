@@ -1,5 +1,4 @@
 use cbsk_base::{anyhow, log};
-use cbsk_base::async_trait::async_trait;
 use cbsk_base::json::to_json::ToJson;
 use cbsk_base::serde::Serialize;
 use cbsk_base::tokio::io::AsyncWriteExt;
@@ -18,7 +17,6 @@ macro_rules! send_log {
 }
 
 /// tcp write trait
-#[async_trait]
 pub trait WriteTrait {
     /// try get tcp client write
     fn try_get_write(&self) -> anyhow::Result<&MutDataObj<OwnedWriteHalf>>;
