@@ -5,18 +5,21 @@ use cbsk_base::log;
 pub trait TcpClientCallBack: Send + Sync + 'static {
     /// connect tcp server success will call this method
     fn conn(&self) -> impl Future<Output=()> + Send {
-        async move { log::info!("connect tcp server success"); }
+        log::info!("connect tcp server success");
+        async {}
     }
 
     /// this method will be called when the tcp service is disconnected
     fn dis_conn(&self) -> impl Future<Output=()> + Send {
-        async move { log::info!("disconnect tcp server"); }
+        log::info!("disconnect tcp server");
+        async {}
     }
 
     /// connect tcp server fail and try connect server will call this method<br />
     /// num: number of try connect
     fn re_conn(&self, num: i32) -> impl Future<Output=()> + Send {
-        async move { log::info!("re connect to tcp server, re num is {num}"); }
+        log::info!("re connect to tcp server, re num is {num}");
+        async {}
     }
 
     /// read tcp server data will call this method<br />

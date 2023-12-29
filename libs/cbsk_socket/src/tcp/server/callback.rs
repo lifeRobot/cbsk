@@ -8,12 +8,14 @@ pub trait TcpServerCallBack: Send + Sync + 'static {
     /// a new tcp client come in<br />
     /// handle: tcp client read async
     fn conn(&self, client: Arc<TcpServerClient>) -> impl Future<Output=()> + Send {
-        async move { log::info!("{} tcp client connected",client.log_head); }
+        log::info!("{} tcp client connected",client.log_head);
+        async {}
     }
 
     /// the tcp client disconnected
     fn dis_conn(&self, client: Arc<TcpServerClient>) -> impl Future<Output=()> + Send {
-        async move { log::info!("{} tcp client disconnect", client.log_head); }
+        log::info!("{} tcp client disconnect", client.log_head);
+        async {}
     }
 
     /// tcp server recv tcp client data will call this method<br />
