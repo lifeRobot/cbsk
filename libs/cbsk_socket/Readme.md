@@ -1,5 +1,6 @@
 cbsk_socket is a socket callback tool  
-you can use cbsk_socket create tcp server or tcp client, you don't need to focus on TCP read and write, just focus on
+you can use cbsk_socket create TCP/WebSocket server or client, you don't need to focus on TCP/WebSocket read and write,
+just focus on
 business processing
 
 ### minimum supported Rust version
@@ -10,7 +11,7 @@ Rust 1.75.0
 
 * tcp client √
 * tcp server √
-* ws client coming soon
+* ws client √
 * ws server coming soon
 
 ### tcp server example
@@ -20,7 +21,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.12"
 cbsk_base = { version = "0.1.4" }
-cbsk_socket = { version = "0.2.2", features = ["tcp_server"] }
+cbsk_socket = { version = "0.3.0", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -79,7 +80,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.12"
 cbsk_base = { version = "0.1.4" }
-cbsk_socket = { version = "0.2.2", features = ["tcp_client"] }
+cbsk_socket = { version = "0.3.0", features = ["tcp_client"] }
 ```
 
 main.rs file:
@@ -139,3 +140,9 @@ impl TcpClientCallBack for TcpClientBusiness {
     }
 }
 ```
+
+### other issues
+
+websocket tls coming soon  
+if y want to use tls, y can
+use [tokio-tungstenite](https://crates.io/crates/tokio-tungstenite)([github](https://github.com/snapview/tokio-tungstenite))

@@ -48,7 +48,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
             let conf = tcp_server.conf.clone();
             let mut read_handles = Vec::new();
 
-            if let Err(e) = Self::try_start::<N>(tcp_server.clone(), &mut read_handles).await {
+            if let Err(e) = tcp_server.try_start::<N>(&mut read_handles).await {
                 log::error!("{} tcp bind [{}] error: {e:?}",conf.log_head,conf.addr);
             }
 
@@ -62,14 +62,14 @@ impl<C: TcpServerCallBack> TcpServer<C> {
     }
 
     /// try start tcp server
-    async fn try_start<const N: usize>(tcp_server: Self, read_handles: &mut Vec<JoinHandle<()>>) -> io::Result<()> {
-        let listener = TcpListener::bind(tcp_server.conf.addr).await?;
-        let conf = tcp_server.conf.as_ref();
+    async fn try_start<const N: usize>(&self, read_handles: &mut Vec<JoinHandle<()>>) -> io::Result<()> {
+        let listener = TcpListener::bind(self.conf.addr).await?;
+        let conf = self.conf.as_ref();
 
         log::info!("{} listener TCP[{}] success",conf.log_head,conf.addr);
         // Loop waiting for client to connect
         loop {
-            if let Err(e) = tcp_server.try_accept::<N>(&listener, read_handles).await {
+            if let Err(e) = self.try_accept::<N>(&listener, read_handles).await {
                 log::error!("{} wait tcp accept error. wait for the next accept in three seconds. error: {:?}",conf.log_head,e);
                 tokio::time::sleep(Duration::from_secs(3)).await;
             }
@@ -82,6 +82,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
         let (tcp_stream, addr) = listener.accept().await?;
         let (read, write) = tcp_stream.into_split();
 
+        // start read data
         let client = Arc::new(TcpServerClient::new(addr, self.conf.as_ref(), write));
         read_handles.push(self.read_spawn::<N>(client.clone(), read));
         self.cb.conn(client).await;
@@ -97,7 +98,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
                 if tcp_server.conf.log { log::error!("{} read tcp client data error: {e:?}",client.log_head); }
             }
 
-            // TCP读取关闭了，直接认为TCP已经关闭了
+            // if TCP read is closed, it is considered that TCP has been closed
             tcp_server.cb.dis_conn(client.clone()).await;
             if tcp_server.conf.log { log::info!("{} tcp client read async closed",client.log_head); }
         })

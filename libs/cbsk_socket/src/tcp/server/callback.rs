@@ -5,8 +5,7 @@ use crate::tcp::server::client::TcpServerClient;
 
 /// tcp connect and read data callback
 pub trait TcpServerCallBack: Send + Sync + 'static {
-    /// a new tcp client come in<br />
-    /// handle: tcp client read async
+    /// a new tcp client come in
     fn conn(&self, client: Arc<TcpServerClient>) -> impl Future<Output=()> + Send {
         log::info!("{} tcp client connected",client.log_head);
         async {}
