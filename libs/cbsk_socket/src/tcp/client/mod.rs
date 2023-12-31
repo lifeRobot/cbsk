@@ -8,7 +8,7 @@ use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::tcp::client::callback::TcpClientCallBack;
 use crate::tcp::client::config::TcpClientConfig;
-use crate::tcp::write_trait::WriteTrait;
+use crate::tcp::tcp_write_trait::TcpWriteTrait;
 
 pub mod config;
 pub mod callback;
@@ -31,7 +31,7 @@ impl<C: TcpClientCallBack> Clone for TcpClient<C> {
 }
 
 /// support writer trait
-impl<C: TcpClientCallBack> WriteTrait for TcpClient<C> {
+impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
     fn try_get_write(&self) -> anyhow::Result<&MutDataObj<OwnedWriteHalf>> {
         self.write.as_ref().as_ref().as_ref().ok_or_else(|| { anyhow::anyhow!("try send data to server, but connect to tcp server not yet") })
     }

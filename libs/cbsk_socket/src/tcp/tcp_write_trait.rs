@@ -6,18 +6,14 @@ use cbsk_base::tokio::net::tcp::OwnedWriteHalf;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 
 /// send data and print log
-macro_rules! send_log {
+macro_rules! send_tcp_log {
     ($result:expr,$log_head:expr,$name:expr,$data:expr) => {
-        if let Err(e) = $result.await {
-            log::error!("{} try send {} data [{:?}] to TCP error : {e:?}",$log_head,$name,$data);
-            return;
-        }
-        log::debug!("{} send {} data [{:?}] to TCP success",$log_head,$name,$data);
+        $crate::send_log!($result,$log_head,$name,$data,"TCP")
     };
 }
 
 /// tcp write trait
-pub trait WriteTrait {
+pub trait TcpWriteTrait {
     /// try get tcp client write
     fn try_get_write(&self) -> anyhow::Result<&MutDataObj<OwnedWriteHalf>>;
 
@@ -26,7 +22,7 @@ pub trait WriteTrait {
 
     /// send text to tcp
     async fn send_text(&self, text: &str) {
-        send_log!(self.try_send_text(text),self.get_log_head(),"text",text);
+        send_tcp_log!(self.try_send_text(text),self.get_log_head(),"text",text);
     }
 
     /// try send text to TCP
@@ -36,7 +32,7 @@ pub trait WriteTrait {
 
     /// send json to TCP
     async fn send_json(&self, json: &(impl Serialize + Sync)) {
-        send_log!(self.try_send_json(json),self.get_log_head(),"json",json.to_json());
+        send_tcp_log!(self.try_send_json(json),self.get_log_head(),"json",json.to_json());
     }
 
     /// try send json to TCP
@@ -47,7 +43,7 @@ pub trait WriteTrait {
 
     /// send bytes to TCP
     async fn send_bytes(&self, bytes: &[u8]) {
-        send_log!(self.try_send_bytes(bytes),self.get_log_head(),"bytes",bytes);
+        send_tcp_log!(self.try_send_bytes(bytes),self.get_log_head(),"bytes",bytes);
     }
 
     /// try send bytes to TCP

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use cbsk_base::tokio::net::tcp::OwnedWriteHalf;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::tcp::server::config::TcpServerConfig;
-use crate::tcp::write_trait::WriteTrait;
+use crate::tcp::tcp_write_trait::TcpWriteTrait;
 
 /// tcp client
 pub struct TcpServerClient {
@@ -25,7 +25,7 @@ impl TcpServerClient {
 }
 
 /// support writer trait
-impl WriteTrait for TcpServerClient {
+impl TcpWriteTrait for TcpServerClient {
     fn try_get_write(&self) -> cbsk_base::anyhow::Result<&MutDataObj<OwnedWriteHalf>> {
         Ok(self.write.as_ref())
     }

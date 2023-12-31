@@ -31,7 +31,16 @@ impl<C: WsServerCallBack> Clone for WsServer<C> {
     }
 }
 
-/// custom method
+/// data init etc
+impl<C: WsServerCallBack> WsServer<C> {
+    /// create a websocket server<br />
+    /// just create data, if you want to read data to recv method, you should be call start method
+    pub fn new(conf: Arc<WsServerConfig>, cb: Arc<C>) -> Self {
+        Self { conf, cb }
+    }
+}
+
+/// websocket read logic
 impl<C: WsServerCallBack> WsServer<C> {
     pub async fn start(&self) -> JoinHandle<()> {
         let ws_server = self.clone();

@@ -5,3 +5,4 @@ pub mod config;
 pub mod tcp;
 #[cfg(any(feature = "ws_server", feature = "ws_client"))]
 pub mod ws;
+mod r#macro;
