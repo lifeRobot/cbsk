@@ -17,12 +17,12 @@ pub fn number_to_bool<'de, D: Deserializer<'de>>(deserializer: D) -> Result<bool
     if let Some(num) = num.as_u64() {
         return Ok(num == 1);
     }
-    // 注意浮点可能存在BUG，直接认为不相等并返回false，所以浮点判断放到了最后
+    // Note that there may be bugs in floating-point, so floating-point judgment is placed last
     if let Some(num) = num.as_f64() {
         return Ok(num == 1.0);
     }
 
-    // 默认返回false
+    // default return false
     Ok(false)
 }
 

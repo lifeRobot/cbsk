@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_run"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 description = "cbsk_run is async pool tool"
 readme = "Readme.md"
@@ -12,7 +12,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_run"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { version = "0.1.4", optional = true }
+cbsk_base = { version = "0.1.5", optional = true }
 cbsk_mut_data = { version = "0.1.3", default-features = false, optional = true }
 
 [features]

@@ -12,7 +12,7 @@ Rust 1.75.0
 * tcp client √
 * tcp server √
 * ws client √
-* ws server coming soon
+* ws server √
 
 ### tcp server example
 
@@ -20,7 +20,7 @@ Cargo.toml file:
 
 ```toml
 fast_log = "1.6.12"
-cbsk_base = { version = "0.1.4" }
+cbsk_base = { version = "0.1.5" }
 cbsk_socket = { version = "0.3.0", features = ["tcp_server"] }
 ```
 
@@ -79,7 +79,7 @@ Cargo.toml file:
 
 ```toml
 fast_log = "1.6.12"
-cbsk_base = { version = "0.1.4" }
+cbsk_base = { version = "0.1.5" }
 cbsk_socket = { version = "0.3.0", features = ["tcp_client"] }
 ```
 

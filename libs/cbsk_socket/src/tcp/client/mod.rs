@@ -44,6 +44,7 @@ impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
 /// data init etc
 impl<C: TcpClientCallBack> TcpClient<C> {
     /// create tcp client<br />
+    /// just create data, if you want to read data to recv method, you should be call start method
     pub fn new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Self {
         Self { conf, cb, write: Arc::new(MutDataObj::default()) }
     }

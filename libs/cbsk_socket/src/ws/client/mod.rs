@@ -1,7 +1,13 @@
 use std::sync::Arc;
-use cbsk_base::tokio;
+use cbsk_base::{anyhow, log, tokio};
+use cbsk_base::async_recursion::async_recursion;
+use cbsk_base::tokio::net::TcpStream;
 use cbsk_base::tokio::task::JoinHandle;
-use futures_util::StreamExt;
+use cbsk_mut_data::mut_data_obj::MutDataObj;
+use futures_util::stream::{SplitSink, SplitStream};
+use futures_util::{SinkExt, StreamExt};
+use tokio_tungstenite::{MaybeTlsStream, WebSocketStream};
+use tokio_tungstenite::tungstenite::Message;
 use crate::ws::client::callback::WsClientCallBack;
 use crate::ws::client::config::WsClientConfig;
 
@@ -14,24 +20,148 @@ pub struct WsClient<C: WsClientCallBack> {
     pub conf: Arc<WsClientConfig>,
     /// websocket client business callback
     pub cb: Arc<C>,
+    /// websocket client writer
+    pub(crate) write: Arc<MutDataObj<Option<MutDataObj<SplitSink<WebSocketStream<MaybeTlsStream<TcpStream>>, Message>>>>>,
 }
 
 /// support clone
 impl<C: WsClientCallBack> Clone for WsClient<C> {
     fn clone(&self) -> Self {
-        Self { conf: self.conf.clone(), cb: self.cb.clone() }
+        Self { conf: self.conf.clone(), cb: self.cb.clone(), write: self.write.clone() }
+    }
+}
+
+/// data init etc
+impl<C: WsClientCallBack> WsClient<C> {
+    /// create websocket client<br />
+    /// just create data, if you want to read data to recv method, you should be call start method
+    pub fn new(conf: Arc<WsClientConfig>, cb: Arc<C>) -> Self {
+        Self { conf, cb, write: Arc::new(MutDataObj::default()) }
+    }
+
+    /// stop websocket server connect<br />
+    /// will shutdown tcp connection and will not new connection
+    pub async fn stop(&self) {
+        self.conf.reconn.as_mut().enable = false;
+        self.shutdown().await;
+    }
+
+    /// notify websocket to re connect<br />
+    /// will shutdown websocket connection, if [`WsClientConfig`] reconn is disable<br />
+    /// will shutdown and create new websocket connection,if [`WsClientConfig`] reconn is enable
+    pub async fn re_conn(&self) {
+        self.shutdown().await;
+    }
+
+    /// shutdown websocket server connect
+    async fn shutdown(&self) {
+        if let Some(write) = self.write.as_ref().as_ref() {
+            if let Err(e) = write.as_mut().close().await {
+                log::error!("shutdown websocket error: {e:?}");
+            }
+        }
+
+        // 只要调用过shutdown，都直接将写置空
+        self.write.set(None);
+    }
+
+    /// get has the websocket server connection been success
+    pub fn is_connected(&self) -> bool {
+        self.write.is_some()
     }
 }
 
 /// tcp read logic
 impl<C: WsClientCallBack> WsClient<C> {
+    /// start websocket client
     pub fn start(&self) -> JoinHandle<()> {
         let ws_client = self.clone();
         tokio::spawn(async move {
-            // TODO under development
-            ws_client.conf.reconn.as_mut().enable = false;
-            let (stream, _) = tokio_tungstenite::connect_async(ws_client.conf.ws_url.as_str()).await.unwrap();
-            let (_write, _read) = stream.split();
+            loop {
+                ws_client.conn(1).await;
+
+                ws_client.cb.dis_conn().await;
+                if !ws_client.conf.reconn.enable { break; }
+                log::error!("{} websocket server disconnected, preparing for reconnection",ws_client.conf.log_head);
+            }
+
+            log::info!("{} websocket client async has ended",ws_client.conf.log_head);
         })
+    }
+
+    /// connect websocket server and start read data<br />
+    /// re_num: re conn number, default is 1
+    #[async_recursion]
+    async fn conn(&self, re_num: i32) {
+        let err =
+            match self.try_conn().await {
+                Ok(ws_stream) => {
+                    self.read_spawn(ws_stream).await;
+                    return;
+                }
+                Err(e) => { e }
+            };
+
+        log::error!("{} websocket server connect error: {err:?}",self.conf.log_head);
+        if !self.conf.reconn.enable { return; }
+
+        // re conn
+        self.cb.re_conn(re_num).await;
+        log::info!("{} websocket service will reconnect in {:?}",self.conf.log_head,self.conf.reconn.time);
+        tokio::time::sleep(self.conf.reconn.time).await;
+        self.conn(re_num + 1).await;
+    }
+
+    /// read websocket server data
+    async fn read_spawn(&self, ws_stream: WebSocketStream<MaybeTlsStream<TcpStream>>) {
+        let (write, read) = ws_stream.split();
+        self.write.set(Some(MutDataObj::new(write)).into());
+
+        log::info!("{} started websocket server read data async success",self.conf.log_head);
+        self.cb.conn().await;
+
+        if let Err(e) = self.try_read_spawn(read).await {
+            log::error!("{} websocket server read data error: {e:?}",self.conf.log_head);
+        }
+
+        // TCP读取关闭了，直接认为TCP已经关闭了，同时关闭读取
+        self.shutdown().await;
+        log::info!("{} websocket server read data async is shutdown",self.conf.log_head);
+    }
+
+    /// try read data from websocket server
+    async fn try_read_spawn(&self, mut read: SplitStream<WebSocketStream<MaybeTlsStream<TcpStream>>>) -> anyhow::Result<()> {
+        loop {
+            let read = read.next();
+            let msg =
+                match tokio::time::timeout(self.conf.read_time_out, read).await {
+                    Ok(msg) => {
+                        // if read empty data, continue to next loop
+                        cbsk_base::match_some_exec!(msg,{continue;})?
+                    }
+                    Err(_e) => {
+                        // if just timeout, continue
+                        continue;
+                    }
+                };
+
+            match msg {
+                Message::Text(text) => { self.cb.recv_text(text).await }
+                Message::Binary(binary) => { self.cb.recv_binary(binary).await }
+                Message::Ping(ping) => { self.cb.recv_ping(ping).await }
+                Message::Pong(pong) => { self.cb.recv_pong(pong).await }
+                Message::Close(close) => { self.cb.recv_close(close).await }
+                Message::Frame(frame) => { self.cb.recv_frame(frame).await }
+            }
+        }
+    }
+
+    /// try connect websocket server
+    async fn try_conn(&self) -> anyhow::Result<WebSocketStream<MaybeTlsStream<TcpStream>>> {
+        log::info!("{} try connect to websocket server",self.conf.log_head);
+        let ws_stream = tokio_tungstenite::connect_async(self.conf.ws_url.as_str());
+        let (ws_stream, _) = tokio::time::timeout(self.conf.conn_time_out, ws_stream).await??;
+
+        Ok(ws_stream)
     }
 }

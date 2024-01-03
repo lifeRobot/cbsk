@@ -42,6 +42,7 @@ impl<C: WsServerCallBack> WsServer<C> {
 
 /// websocket read logic
 impl<C: WsServerCallBack> WsServer<C> {
+    /// start websocket server
     pub async fn start(&self) -> JoinHandle<()> {
         let ws_server = self.clone();
         tokio::spawn(async move {
