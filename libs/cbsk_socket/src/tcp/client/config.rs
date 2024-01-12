@@ -21,7 +21,7 @@ pub struct TcpClientConfig {
 
 /// custom method
 impl TcpClientConfig {
-    /// create a tcp client<br />
+    /// create a tcp client config<br />
     /// conn_time_out default 10 secs<br />
     /// read_time_out default 1 secs
     pub fn new(name: String, addr: SocketAddr, reconn: SocketReConn) -> Self {
