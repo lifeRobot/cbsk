@@ -21,7 +21,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.12"
 cbsk_base = { version = "0.1.5" }
-cbsk_socket = { version = "0.3.0", features = ["tcp_server"] }
+cbsk_socket = { version = "0.3.1", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -80,7 +80,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.12"
 cbsk_base = { version = "0.1.5" }
-cbsk_socket = { version = "0.3.0", features = ["tcp_client"] }
+cbsk_socket = { version = "0.3.1", features = ["tcp_client"] }
 ```
 
 main.rs file:

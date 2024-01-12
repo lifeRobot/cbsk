@@ -1,7 +1,7 @@
 use std::net::{IpAddr, SocketAddr};
 use cbsk_base::serde::Deserialize;
 
-#[cfg(feature = "tcp_client")]
+#[cfg(any(feature = "tcp_client", feature = "ws_client"))]
 pub mod re_conn;
 
 /// socket config
