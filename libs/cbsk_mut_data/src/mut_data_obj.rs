@@ -70,6 +70,19 @@ impl MutDataObj<bool> {
     }
 }
 
+/// option method
+impl<T> MutDataObj<Option<T>> {
+    /// set data to none
+    pub fn set_none(&self) {
+        self.set(None);
+    }
+
+    /// set data to Some(t)
+    pub fn set_some(&self, t: T) {
+        self.set(Some(t));
+    }
+}
+
 crate::impl_sync_send!(T,MutDataObj<T>);
 crate::impl_debug_display!(T,MutDataObj<T>);
 crate::impl_as_ref!(T,T,MutDataObj<T>);

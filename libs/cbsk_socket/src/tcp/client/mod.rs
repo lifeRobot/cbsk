@@ -72,7 +72,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         }
 
         // 只要调用过shutdown，都直接将写置空
-        self.write.set(None);
+        self.write.set_none();
     }
 
     /// get has the tcp server connection been success
@@ -126,7 +126,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     /// read tcp server data
     async fn read_spawn<const N: usize>(&self, tcp_stream: TcpStream) {
         let (read, write) = tcp_stream.into_split();
-        self.write.set(Some(MutDataObj::new(write).into()));
+        self.write.set_some(MutDataObj::new(write).into());
 
         log::info!("{} started tcp server read data async success",self.conf.log_head);
         self.cb.conn().await;
