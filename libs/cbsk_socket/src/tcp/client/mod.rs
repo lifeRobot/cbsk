@@ -71,7 +71,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
             }
         }
 
-        // 只要调用过shutdown，都直接将写置空
+        // as long as shutdown is called, write will be left blank directly
         self.write.set_none();
     }
 
@@ -132,10 +132,14 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         self.cb.conn().await;
 
         if let Err(e) = self.try_read_spawn::<N>(read).await {
-            log::error!("{} tcp server read data error: {e:?}",self.conf.log_head);
+            // if the write is not closed, print the log.
+            // otherwise, it is considered as actively closing the connection and there is no need to print the log
+            if self.write.is_some() {
+                log::error!("{} tcp server read data error: {e:?}",self.conf.log_head);
+            }
         }
 
-        // TCP读取关闭了，直接认为TCP已经关闭了，同时关闭读取
+        // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
         self.shutdown().await;
         log::info!("{} tcp server read data async is shutdown",self.conf.log_head);
     }
@@ -156,15 +160,15 @@ impl<C: TcpClientCallBack> TcpClient<C> {
                     }
                 };
 
-            // 读取到了长度为0，直接认为已经断开了连接
+            // reading a length of 0, it is assumed that the connection has been disconnected
             if len == 0 { return Err(anyhow::anyhow!("read data length is 0, indicating that tcp server is disconnected")); }
 
-            // 长度非0，执行逻辑等
-            // 获取长度打印日志
+            // non zero length, execution logic, etc
+            // obtain length and print logs
             let buf = &buf[0..len];
             log::debug!("{} tcp read data[{buf:?}] of length {len}",self.conf.log_head);
 
-            // 合并数据并转到回调中
+            // merge data and transfer to callback
             buf_tmp.append(&mut buf.to_vec());
             buf_tmp = self.cb.recv(buf_tmp).await;
         }

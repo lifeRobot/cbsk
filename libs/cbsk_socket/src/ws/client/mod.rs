@@ -61,7 +61,7 @@ impl<C: WsClientCallBack> WsClient<C> {
             }
         }
 
-        // 只要调用过shutdown，都直接将写置空
+        // as long as shutdown is called, write will be left blank directly
         self.write.set(None);
     }
 
@@ -121,10 +121,14 @@ impl<C: WsClientCallBack> WsClient<C> {
         self.cb.conn().await;
 
         if let Err(e) = self.try_read_spawn(read).await {
-            log::error!("{} websocket server read data error: {e:?}",self.conf.log_head);
+            // if the write is not closed, print the log.
+            // otherwise, it is considered as actively closing the connection and there is no need to print the log
+            if self.write.is_some() {
+                log::error!("{} websocket server read data error: {e:?}",self.conf.log_head);
+            }
         }
 
-        // TCP读取关闭了，直接认为TCP已经关闭了，同时关闭读取
+        // websocket read disabled, directly assume that websocket has been closed, simultaneously close read
         self.shutdown().await;
         log::info!("{} websocket server read data async is shutdown",self.conf.log_head);
     }
