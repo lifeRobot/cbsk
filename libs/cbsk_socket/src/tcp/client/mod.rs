@@ -26,7 +26,7 @@ pub struct TcpClient<C: TcpClientCallBack> {
     /// a new last data reception time has been added,
     /// allowing users to determine whether they need to reconnect to TCP on their own<br />
     /// time see [fastdate::DateTime::unix_timestamp_millis]
-    pub recv_time: MutDataObj<i64>,
+    pub recv_time: Arc<MutDataObj<i64>>,
     /// tcp client writer
     pub(crate) write: Arc<MutDataObj<Option<MutDataObj<OwnedWriteHalf>>>>,
 }
@@ -34,7 +34,7 @@ pub struct TcpClient<C: TcpClientCallBack> {
 /// support clone
 impl<C: TcpClientCallBack> Clone for TcpClient<C> {
     fn clone(&self) -> Self {
-        Self { conf: self.conf.clone(), cb: self.cb.clone(), recv_time: MutDataObj::new(*self.recv_time), write: self.write.clone() }
+        Self { conf: self.conf.clone(), cb: self.cb.clone(), recv_time: self.recv_time.clone(), write: self.write.clone() }
     }
 }
 
@@ -54,7 +54,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     /// create tcp client<br />
     /// just create data, if you want to read data to recv method, you should be call start method
     pub fn new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Self {
-        Self { conf, cb, recv_time: MutDataObj::new(DateTime::now().unix_timestamp_millis()), write: Arc::new(MutDataObj::default()) }
+        Self { conf, cb, recv_time: MutDataObj::new(DateTime::now().unix_timestamp_millis()).into(), write: Arc::new(MutDataObj::default()) }
     }
 
     /// stop tcp server connect<br />
