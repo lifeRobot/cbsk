@@ -125,7 +125,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
 
             // get data and log println
             let buf = &buf[0..len];
-            log::debug!("{} TCP read data[{buf:?}] of length {len}",client.log_head);
+            log::trace!("{} TCP read data[{buf:?}] of length {len}",client.log_head);
             buf_tmp.append(&mut buf.to_vec());
             buf_tmp = self.cb.recv(buf_tmp, client.clone()).await;
         }

@@ -166,7 +166,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
             // non zero length, execution logic, etc
             // obtain length and print logs
             let buf = &buf[0..len];
-            log::debug!("{} tcp read data[{buf:?}] of length {len}",self.conf.log_head);
+            log::trace!("{} tcp read data[{buf:?}] of length {len}",self.conf.log_head);
 
             // merge data and transfer to callback
             buf_tmp.append(&mut buf.to_vec());
