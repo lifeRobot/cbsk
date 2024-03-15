@@ -6,6 +6,7 @@ use cbsk_base::tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use cbsk_base::tokio::net::TcpStream;
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
+use fastdate::DateTime;
 use crate::tcp::client::callback::TcpClientCallBack;
 use crate::tcp::client::config::TcpClientConfig;
 use crate::tcp::tcp_write_trait::TcpWriteTrait;
@@ -19,6 +20,13 @@ pub struct TcpClient<C: TcpClientCallBack> {
     pub conf: Arc<TcpClientConfig>,
     /// tcp client business callback
     pub cb: Arc<C>,
+    /// the last time the data was received<br />
+    /// Because some Linux systems have network disconnections,
+    /// but the system still considers TCP connections to be normal,
+    /// a new last data reception time has been added,
+    /// allowing users to determine whether they need to reconnect to TCP on their own<br />
+    /// time see [fastdate::DateTime::unix_timestamp_millis]
+    pub recv_time: MutDataObj<i64>,
     /// tcp client writer
     pub(crate) write: Arc<MutDataObj<Option<MutDataObj<OwnedWriteHalf>>>>,
 }
@@ -26,7 +34,7 @@ pub struct TcpClient<C: TcpClientCallBack> {
 /// support clone
 impl<C: TcpClientCallBack> Clone for TcpClient<C> {
     fn clone(&self) -> Self {
-        Self { conf: self.conf.clone(), cb: self.cb.clone(), write: self.write.clone() }
+        Self { conf: self.conf.clone(), cb: self.cb.clone(), recv_time: MutDataObj::new(*self.recv_time), write: self.write.clone() }
     }
 }
 
@@ -46,7 +54,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     /// create tcp client<br />
     /// just create data, if you want to read data to recv method, you should be call start method
     pub fn new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Self {
-        Self { conf, cb, write: Arc::new(MutDataObj::default()) }
+        Self { conf, cb, recv_time: MutDataObj::new(DateTime::now().unix_timestamp_millis()), write: Arc::new(MutDataObj::default()) }
     }
 
     /// stop tcp server connect<br />
@@ -155,7 +163,13 @@ impl<C: TcpClientCallBack> TcpClient<C> {
                 match tokio::time::timeout(self.conf.read_time_out, read).await {
                     Ok(read) => { read? }
                     Err(_) => {
-                        // if just timeout, continue
+                        // if just timeout, check write is conn
+                        if self.write.is_none() {
+                            // if write is disconnection，Believing that the connection has been manually closed
+                            // exit the loop directly
+                            return Ok(());
+                        }
+                        // But if just timeout, continue
                         continue;
                     }
                 };
@@ -163,6 +177,8 @@ impl<C: TcpClientCallBack> TcpClient<C> {
             // reading a length of 0, it is assumed that the connection has been disconnected
             if len == 0 { return Err(anyhow::anyhow!("read data length is 0, indicating that tcp server is disconnected")); }
 
+            // set recv time
+            self.recv_time.set(DateTime::now().unix_timestamp_millis());
             // non zero length, execution logic, etc
             // obtain length and print logs
             let buf = &buf[0..len];
