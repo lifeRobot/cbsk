@@ -154,6 +154,8 @@ impl<C: TcpClientCallBack> TcpClient<C> {
 
     /// try read data from tcp server
     async fn try_read_spawn<const N: usize>(&self, mut read: OwnedReadHalf) -> anyhow::Result<()> {
+        // start read data success, set recv_time once
+        self.recv_time.set(DateTime::now().unix_timestamp_millis());
         let mut buf = [0; N];
         let mut buf_tmp = Vec::new();
 
