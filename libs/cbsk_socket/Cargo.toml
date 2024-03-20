@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket"
-version = "0.3.10"
+version = "0.3.11"
 edition = "2021"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
@@ -23,6 +23,6 @@ futures-util = { version = "0.3.30", default-features = false, optional = true }
 
 [features]
 tcp_server = []
-tcp_client = ["cbsk_base/async-recursion"]
+tcp_client = []
 ws_server = ["tokio-tungstenite", "futures-util", "cbsk_base/macro"]
-ws_client = ["tokio-tungstenite", "futures-util", "cbsk_base/async-recursion", "cbsk_base/macro"]
+ws_client = ["tokio-tungstenite", "futures-util", "cbsk_base/macro"]

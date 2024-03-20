@@ -1,6 +1,5 @@
 use std::sync::Arc;
 use cbsk_base::{anyhow, log, tokio};
-use cbsk_base::async_recursion::async_recursion;
 use cbsk_base::tokio::io::{AsyncReadExt, AsyncWriteExt};
 use cbsk_base::tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use cbsk_base::tokio::net::TcpStream;
@@ -97,7 +96,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         let tcp_client = self.clone();
         tokio::spawn(async move {
             loop {
-                tcp_client.conn::<N>(1).await;
+                tcp_client.conn::<N>().await;
 
                 tcp_client.cb.dis_conn().await;
                 if !tcp_client.conf.reconn.enable { break; }
@@ -108,27 +107,28 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         })
     }
 
-    /// connect tcp server and start read data<br />
-    /// re_num: re conn number, default is 1
-    #[async_recursion]
-    async fn conn<const N: usize>(&self, re_num: i32) {
-        let err =
-            match self.try_conn().await {
-                Ok(tcp_stream) => {
-                    self.read_spawn::<N>(tcp_stream).await;
-                    return;
-                }
-                Err(e) => { e }
-            };
+    /// connect tcp server and start read data
+    async fn conn<const N: usize>(&self) {
+        let mut re_num = 0;
+        loop {
+            re_num += 1;
+            let err =
+                match self.try_conn().await {
+                    Ok(tcp_stream) => {
+                        self.read_spawn::<N>(tcp_stream).await;
+                        return;
+                    }
+                    Err(e) => e,
+                };
 
-        log::error!("{} tcp server connect error: {err:?}",self.conf.log_head);
-        if !self.conf.reconn.enable { return; }
+            log::error!("{} tcp server connect error: {err:?}",self.conf.log_head);
+            if !self.conf.reconn.enable { return; }
 
-        // re conn
-        self.cb.re_conn(re_num).await;
-        log::info!("{} tcp service will reconnect in {:?}",self.conf.log_head,self.conf.reconn.time);
-        tokio::time::sleep(self.conf.reconn.time).await;
-        self.conn::<N>(re_num + 1).await;
+            // reconn
+            self.cb.re_conn(re_num).await;
+            log::info!("{} tcp service will reconnect in {:?}",self.conf.log_head,self.conf.reconn.time);
+            tokio::time::sleep(self.conf.reconn.time).await;
+        }
     }
 
     /// read tcp server data

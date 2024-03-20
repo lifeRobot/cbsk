@@ -1,6 +1,5 @@
 use std::sync::Arc;
 use cbsk_base::{anyhow, log, tokio};
-use cbsk_base::async_recursion::async_recursion;
 use cbsk_base::tokio::net::TcpStream;
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
@@ -78,7 +77,7 @@ impl<C: WsClientCallBack> WsClient<C> {
         let ws_client = self.clone();
         tokio::spawn(async move {
             loop {
-                ws_client.conn(1).await;
+                ws_client.conn().await;
 
                 ws_client.cb.dis_conn().await;
                 if !ws_client.conf.reconn.enable { break; }
@@ -89,27 +88,28 @@ impl<C: WsClientCallBack> WsClient<C> {
         })
     }
 
-    /// connect websocket server and start read data<br />
-    /// re_num: re conn number, default is 1
-    #[async_recursion]
-    async fn conn(&self, re_num: i32) {
-        let err =
-            match self.try_conn().await {
-                Ok(ws_stream) => {
-                    self.read_spawn(ws_stream).await;
-                    return;
-                }
-                Err(e) => { e }
-            };
+    /// connect websocket server and start read data
+    async fn conn(&self) {
+        let mut re_num = 0;
+        loop {
+            re_num += 1;
+            let err =
+                match self.try_conn().await {
+                    Ok(ws_stream) => {
+                        self.read_spawn(ws_stream).await;
+                        return;
+                    }
+                    Err(e) => { e }
+                };
 
-        log::error!("{} websocket server connect error: {err:?}",self.conf.log_head);
-        if !self.conf.reconn.enable { return; }
+            log::error!("{} websocket server connect error: {err:?}",self.conf.log_head);
+            if !self.conf.reconn.enable { return; }
 
-        // re conn
-        self.cb.re_conn(re_num).await;
-        log::info!("{} websocket service will reconnect in {:?}",self.conf.log_head,self.conf.reconn.time);
-        tokio::time::sleep(self.conf.reconn.time).await;
-        self.conn(re_num + 1).await;
+            // re conn
+            self.cb.re_conn(re_num).await;
+            log::info!("{} websocket service will reconnect in {:?}",self.conf.log_head,self.conf.reconn.time);
+            tokio::time::sleep(self.conf.reconn.time).await;
+        }
     }
 
     /// read websocket server data
