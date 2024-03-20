@@ -95,10 +95,10 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     pub fn start<const N: usize>(&self) -> JoinHandle<()> {
         let tcp_client = self.clone();
         tokio::spawn(async move {
+            // there are two loops here, so it should be possible to optimize them
             loop {
                 tcp_client.conn::<N>().await;
 
-                tcp_client.cb.dis_conn().await;
                 if !tcp_client.conf.reconn.enable { break; }
                 log::error!("{} tcp server disconnected, preparing for reconnection",tcp_client.conf.log_head);
             }
@@ -149,6 +149,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
 
         // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
         self.shutdown().await;
+        self.cb.dis_conn().await;
         log::info!("{} tcp server read data async is shutdown",self.conf.log_head);
     }
 

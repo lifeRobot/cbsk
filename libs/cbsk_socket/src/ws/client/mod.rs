@@ -76,10 +76,10 @@ impl<C: WsClientCallBack> WsClient<C> {
     pub fn start(&self) -> JoinHandle<()> {
         let ws_client = self.clone();
         tokio::spawn(async move {
+            // there are two loops here, so it should be possible to optimize them
             loop {
                 ws_client.conn().await;
 
-                ws_client.cb.dis_conn().await;
                 if !ws_client.conf.reconn.enable { break; }
                 log::error!("{} websocket server disconnected, preparing for reconnection",ws_client.conf.log_head);
             }
@@ -130,6 +130,7 @@ impl<C: WsClientCallBack> WsClient<C> {
 
         // websocket read disabled, directly assume that websocket has been closed, simultaneously close read
         self.shutdown().await;
+        self.cb.dis_conn().await;
         log::info!("{} websocket server read data async is shutdown",self.conf.log_head);
     }
 
