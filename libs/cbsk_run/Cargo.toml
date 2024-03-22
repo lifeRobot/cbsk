@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_run"
-version = "0.1.9"
+version = "0.1.10"
 edition = "2021"
 description = "cbsk_run is async pool tool"
 readme = "Readme.md"

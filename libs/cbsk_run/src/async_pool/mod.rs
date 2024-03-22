@@ -1,7 +1,7 @@
 use std::future::Future;
 use std::time::Duration;
 use cbsk_base::once_cell::sync::Lazy;
-use cbsk_base::{log, tokio};
+use cbsk_base::tokio;
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
@@ -61,11 +61,9 @@ pub fn listener() -> JoinHandle<()> {
                     continue;
                 });
 
-                // async runtime is finished, remove and await end
+                // remove handle when async runtime is finished
                 if handle.is_finished() {
-                    if let Err(e) = async_pool.remove(i).await {
-                        log::error!("async runtime error: {e:?}");
-                    }
+                    async_pool.remove(i);
                     len -= 1;
                 }
 

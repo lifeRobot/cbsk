@@ -7,7 +7,7 @@ Cargo.toml file :
 
 ```toml
 cbsk_base = { version = "0.1.7" }
-cbsk_run = { version = "0.1.9" }
+cbsk_run = { version = "0.1.10" }
 ```
 
 main.rs file :
@@ -45,7 +45,7 @@ Cargo.toml file :
 
 ```toml
 cbsk_base = { version = "0.1.7" }
-cbsk_run = { version = "0.1.9" }
+cbsk_run = { version = "0.1.10" }
 ```
 
 main.rs file :
