@@ -12,3 +12,10 @@ keywords = ["socket", "net", "tcp", "ws", "websocket"]
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+#cbsk_socket = { version = "0.3.12" }
+cbsk_socket = { path = "libs/cbsk_socket" }
+
+[features]
+default = ["client"]
+client = ["cbsk_socket/tcp_client"]
+server = ["cbsk_socket/tcp_server"]
