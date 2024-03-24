@@ -9,7 +9,7 @@ use crate::server::client::CbskServerClient;
 pub struct CbskServerBusiness<C: CbskServerCallBack> {
     /// the cbsk first frame<br />
     /// Used to determine if it is cbsk data
-    pub header: Vec<u8>,
+    pub header: Arc<Vec<u8>>,
     /// business callback
     pub cb: Arc<C>,
 }
@@ -18,7 +18,7 @@ pub struct CbskServerBusiness<C: CbskServerCallBack> {
 impl<C: CbskServerCallBack> CbskServerBusiness<C> {
     /// new business
     pub fn new(cb: Arc<C>) -> Self {
-        Self { cb, header: data::default_header() }
+        Self { cb, header: data::default_header().into() }
     }
 
     /// new business, custom header frame
@@ -27,22 +27,22 @@ impl<C: CbskServerCallBack> CbskServerBusiness<C> {
         if header.is_empty() {
             header = data::default_header()
         }
-        Self { cb, header }
+        Self { cb, header: header.into() }
     }
 }
 
 /// support tcp server callback
 impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusiness<C> {
     async fn conn(&self, client: Arc<TcpServerClient>) {
-        self.cb.conn(Arc::new(client.into())).await;
+        self.cb.conn(CbskServerClient::new(self.header.clone(), client).into()).await;
     }
 
     async fn dis_conn(&self, client: Arc<TcpServerClient>) {
-        self.cb.dis_conn(Arc::new(client.into())).await;
+        self.cb.dis_conn(CbskServerClient::new(self.header.clone(), client).into()).await;
     }
 
     async fn recv(&self, mut bytes: Vec<u8>, client: Arc<TcpServerClient>) -> Vec<u8> {
-        let cbsk_server_client = Arc::new(CbskServerClient::new(client));
+        let cbsk_server_client = Arc::new(CbskServerClient::new(self.header.clone(), client));
 
         // TODO can the following code be optimized? There are too many if and loop
         loop {
@@ -59,7 +59,7 @@ impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusiness<C> {
             // verify success, perform data analysis
             if !verify_data.data_frame.is_empty() {
                 loop {
-                    let analysis_data = business::analysis(verify_data.data_frame);
+                    let analysis_data = business::analysis(verify_data.data_frame, &self.header);
 
                     if let Some(too_long) = analysis_data.too_long_byte {
                         self.cb.too_long_frame(too_long, cbsk_server_client.clone()).await;

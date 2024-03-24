@@ -35,13 +35,7 @@ impl AnalysisData {
 
     /// new analysis data<br />
     /// if too short frame is not empty, will be add header data
-    pub fn new(data_frame: Vec<u8>, mut too_short_frame: Vec<u8>, too_long_byte: Option<u8>, next_verify_frame: Vec<u8>) -> Self {
-        if !too_short_frame.is_empty() {
-            let mut heander = super::default_header();
-            heander.append(&mut too_short_frame);
-            too_short_frame = heander;
-        }
-
+    pub fn new(data_frame: Vec<u8>, too_short_frame: Vec<u8>, too_long_byte: Option<u8>, next_verify_frame: Vec<u8>) -> Self {
         Self { data_frame, too_short_frame, too_long_byte, next_verify_frame }
     }
 }

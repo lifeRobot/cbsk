@@ -1,4 +1,5 @@
 /// verify result data
+#[derive(Debug)]
 pub struct VerifyData {
     /// verify fail frame
     pub error_frame: Vec<u8>,

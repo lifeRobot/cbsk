@@ -1,4 +1,7 @@
-#[allow(async_fn_in_trait)]
+#![allow(async_fn_in_trait)]
+
+pub use cbsk_socket;
+
 #[cfg(feature = "client")]
 pub mod client;
 #[cfg(feature = "server")]

@@ -59,7 +59,7 @@ impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusiness<C> {
             // verify success, perform data analysis
             if !verify_data.data_frame.is_empty() {
                 loop {
-                    let analysis_data = business::analysis(verify_data.data_frame);
+                    let analysis_data = business::analysis(verify_data.data_frame, &self.header);
 
                     if let Some(too_long) = analysis_data.too_long_byte {
                         self.cb.too_long_frame(too_long).await;
