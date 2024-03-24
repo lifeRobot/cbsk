@@ -22,6 +22,7 @@ cbsk has a custom TCP data verification protocol internally, and the protocol lo
 Cargo.toml:
 
 ```toml
+cbsk_base = { version = "0.1.7", default-features = false, features = ["once_cell"] }
 cbsk = { version = "0.1.0", features = ["server"] }
 ```
 
@@ -37,8 +38,8 @@ use cbsk::client::CbskClient;
 use cbsk::server::callback::CbskServerCallBack;
 use cbsk::server::CbskServer;
 use cbsk::server::client::CbskServerClient;
-use cbsk::cbsk_socket::cbsk_base::once_cell::sync::Lazy;
 use cbsk::cbsk_socket::cbsk_base::tokio;
+use cbsk_base::once_cell::sync::Lazy;
 
 #[allow(non_upper_case_globals)]
 static addr: Lazy<SocketAddr> = Lazy::new(|| { SocketAddr::new(IpAddr::from([127, 0, 0, 1]), 8080) });

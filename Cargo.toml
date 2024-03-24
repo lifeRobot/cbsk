@@ -13,7 +13,7 @@ repository = "https://github.com/lifeRobot/cbsk"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { version = "0.1.7", default-features = false, features = ["macro", "once_cell"] }
+cbsk_base = { version = "0.1.7", default-features = false, features = ["macro"] }
 cbsk_socket = { version = "0.3.13" }
 
 [features]
