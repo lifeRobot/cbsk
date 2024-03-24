@@ -1,3 +1,4 @@
+use std::net::SocketAddr;
 use std::sync::Arc;
 use cbsk_socket::cbsk_base::anyhow;
 use cbsk_socket::cbsk_base::tokio::net::tcp::OwnedWriteHalf;
@@ -25,6 +26,11 @@ impl CbskServerClient {
     /// get internal log name
     pub fn get_log_head(&self) -> &str {
         self.tcp_server_client.get_log_head()
+    }
+
+    /// get client addr
+    pub fn get_addr(&self) -> SocketAddr {
+        self.tcp_server_client.addr
     }
 }
 
