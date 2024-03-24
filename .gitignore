@@ -3,3 +3,4 @@
 /libs/*/.idea
 /libs/*/.cargo
 /libs/*/Cargo.lock
+/.cargo
