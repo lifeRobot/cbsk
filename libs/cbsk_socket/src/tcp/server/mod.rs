@@ -96,9 +96,9 @@ impl<C: TcpServerCallBack> TcpServer<C> {
     fn read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) -> JoinHandle<()> {
         let tcp_server = self.clone();
         tokio::spawn(async move {
-            let read_headle = tcp_server.try_read_spawn::<N>(client.clone(), read);
+            let read_headle = Arc::new(tcp_server.try_read_spawn::<N>(client.clone(), read));
 
-            client.wait_read_handle_finished(read_headle, tcp_server.conf.read_time_out, || async {
+            client.wait_read_handle_finished(read_headle.clone(), tcp_server.conf.read_time_out, || async {
                 // it is possible that TCP has not been closed here, so notify to close it once
                 if let Ok(tcp_client) = client.try_get_write() {
                     // ignoring notification results

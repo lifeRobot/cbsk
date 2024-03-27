@@ -178,7 +178,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         log::info!("{} started tcp server read data async success",self.conf.log_head);
         self.cb.conn().await;
 
-        let read_handle = self.try_read_spawn::<N>(read);
+        let read_handle = self.try_read_spawn::<N>(read).into();
         self.wait_read_handle_finished(read_handle, self.conf.read_time_out, || async {}).await;
 
         // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
@@ -196,7 +196,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         tokio::spawn(async move {
             let result =
                 tcp_client.try_read_data::<N, _, _, _>(read, tcp_client.conf.read_time_out, "client", || {
-                    tcp_client.write.is_some()
+                    tcp_client.write.is_none()
                 }, |data| async {
                     tcp_client.cb.recv(data).await
                 }).await;

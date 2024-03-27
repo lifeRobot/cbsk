@@ -1,4 +1,5 @@
 use std::future::Future;
+use std::sync::Arc;
 use std::time::Duration;
 use cbsk_base::{anyhow, log, tokio};
 use cbsk_base::tokio::io::AsyncReadExt;
@@ -45,7 +46,7 @@ pub(crate) trait TcpTimeTrait {
     }
 
     /// wait read data finished
-    async fn wait_read_handle_finished<F, R>(&self, read_handle: JoinHandle<()>, read_time_out: Duration, abort_fn: F)
+    async fn wait_read_handle_finished<F, R>(&self, read_handle: Arc<JoinHandle<()>>, read_time_out: Duration, abort_fn: F)
         where F: Fn() -> R, R: Future<Output=()> {
         let check_time_out = i64::try_from(read_time_out.as_millis()).unwrap_or(1000) + 1000;
         loop {
@@ -90,7 +91,6 @@ pub(crate) trait TcpTimeTrait {
                     Err(_) => {
                         // set timeout time
                         self.set_timeout_time_now();
-                        log::info!("{} time out",self.get_log_head());
                         // if just timeout, check write is conn
                         if timeout_fn() {
                             // if timeout_fn return true, exit the loop directly
