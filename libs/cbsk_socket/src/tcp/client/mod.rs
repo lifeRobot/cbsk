@@ -1,13 +1,13 @@
 use std::sync::Arc;
 use cbsk_base::{anyhow, log, tokio};
-use cbsk_base::tokio::io::{AsyncReadExt, AsyncWriteExt};
+use cbsk_base::tokio::io::AsyncWriteExt;
 use cbsk_base::tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use cbsk_base::tokio::net::TcpStream;
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
-use fastdate::DateTime;
 use crate::tcp::client::callback::TcpClientCallBack;
 use crate::tcp::client::config::TcpClientConfig;
+use crate::tcp::tcp_time_trait::TcpTimeTrait;
 use crate::tcp::tcp_write_trait::TcpWriteTrait;
 
 pub mod config;
@@ -26,6 +26,10 @@ pub struct TcpClient<C: TcpClientCallBack> {
     /// allowing users to determine whether they need to reconnect to TCP on their own<br />
     /// time see [fastdate::DateTime::unix_timestamp_millis]
     pub recv_time: Arc<MutDataObj<i64>>,
+    /// the tcp last read timeout<br />
+    /// because sometimes tokio:: time:: timeout will fail, causing the CPU to run continuously, a timeout logic has been added<br />
+    /// time see [fastdate::DateTime::unix_timestamp_millis]
+    pub timeout_time: Arc<MutDataObj<i64>>,
     /// tcp client writer
     pub(crate) write: Arc<MutDataObj<Option<MutDataObj<OwnedWriteHalf>>>>,
 }
@@ -33,7 +37,13 @@ pub struct TcpClient<C: TcpClientCallBack> {
 /// support clone
 impl<C: TcpClientCallBack> Clone for TcpClient<C> {
     fn clone(&self) -> Self {
-        Self { conf: self.conf.clone(), cb: self.cb.clone(), recv_time: self.recv_time.clone(), write: self.write.clone() }
+        Self {
+            conf: self.conf.clone(),
+            cb: self.cb.clone(),
+            recv_time: self.recv_time.clone(),
+            timeout_time: self.timeout_time.clone(),
+            write: self.write.clone(),
+        }
     }
 }
 
@@ -48,12 +58,41 @@ impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
     }
 }
 
+/// support tcp time trait
+impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
+    fn set_recv_time(&self, time: i64) {
+        self.recv_time.set(time)
+    }
+
+    fn get_recv_time(&self) -> i64 {
+        **self.recv_time
+    }
+
+    fn set_timeout_time(&self, time: i64) {
+        self.timeout_time.set(time)
+    }
+
+    fn get_timeout_time(&self) -> i64 {
+        **self.timeout_time
+    }
+
+    fn get_log_head(&self) -> &str {
+        self.conf.log_head.as_str()
+    }
+}
+
 /// data init etc
 impl<C: TcpClientCallBack> TcpClient<C> {
     /// create tcp client<br />
     /// just create data, if you want to read data to recv method, you should be call start method
     pub fn new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Self {
-        Self { conf, cb, recv_time: MutDataObj::new(DateTime::now().unix_timestamp_millis()).into(), write: Arc::new(MutDataObj::default()) }
+        Self {
+            conf,
+            cb,
+            recv_time: MutDataObj::new(Self::now()).into(),
+            timeout_time: MutDataObj::new(Self::now()).into(),
+            write: Arc::new(MutDataObj::default()),
+        }
     }
 
     /// stop tcp server connect<br />
@@ -139,13 +178,8 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         log::info!("{} started tcp server read data async success",self.conf.log_head);
         self.cb.conn().await;
 
-        if let Err(e) = self.try_read_spawn::<N>(read).await {
-            // if the write is not closed, print the log.
-            // otherwise, it is considered as actively closing the connection and there is no need to print the log
-            if self.write.is_some() {
-                log::error!("{} tcp server read data error: {e:?}",self.conf.log_head);
-            }
-        }
+        let read_handle = self.try_read_spawn::<N>(read);
+        self.wait_read_handle_finished(read_handle, self.conf.read_time_out, || async {}).await;
 
         // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
         self.shutdown().await;
@@ -153,44 +187,26 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         log::info!("{} tcp server read data async is shutdown",self.conf.log_head);
     }
 
-    /// try read data from tcp server
-    async fn try_read_spawn<const N: usize>(&self, mut read: OwnedReadHalf) -> anyhow::Result<()> {
-        // start read data success, set recv_time once
-        self.recv_time.set(DateTime::now().unix_timestamp_millis());
-        let mut buf = [0; N];
-        let mut buf_tmp = Vec::new();
+    /// read data handle
+    fn try_read_spawn<const N: usize>(&self, read: OwnedReadHalf) -> JoinHandle<()> {
+        // start read headle, set recvtime and timeouttime is now
+        self.set_now();
 
-        loop {
-            let read = read.read(&mut buf);
-            let len =
-                match tokio::time::timeout(self.conf.read_time_out, read).await {
-                    Ok(read) => { read? }
-                    Err(_) => {
-                        // if just timeout, check write is conn
-                        if self.write.is_none() {
-                            // if write is disconnection，Believing that the connection has been manually closed
-                            // exit the loop directly
-                            return Ok(());
-                        }
-                        // But if just timeout, continue
-                        continue;
-                    }
-                };
+        let tcp_client = self.clone();
+        tokio::spawn(async move {
+            let result =
+                tcp_client.try_read_data::<N, _, _, _>(read, tcp_client.conf.read_time_out, "client", || {
+                    tcp_client.write.is_some()
+                }, |data| async {
+                    tcp_client.cb.recv(data).await
+                }).await;
 
-            // reading a length of 0, it is assumed that the connection has been disconnected
-            if len == 0 { return Err(anyhow::anyhow!("read data length is 0, indicating that tcp server is disconnected")); }
-
-            // set recv time
-            self.recv_time.set(DateTime::now().unix_timestamp_millis());
-            // non zero length, execution logic, etc
-            // obtain length and print logs
-            let buf = &buf[0..len];
-            log::trace!("{} tcp read data[{buf:?}] of length {len}",self.conf.log_head);
-
-            // merge data and transfer to callback
-            buf_tmp.append(&mut buf.to_vec());
-            buf_tmp = self.cb.recv(buf_tmp).await;
-        }
+            if let Err(e) = result {
+                if tcp_client.write.is_some() {
+                    log::error!("{} tcp server read data error: {e:?}",tcp_client.conf.log_head);
+                }
+            }
+        })
     }
 
     /// try connect tcp server

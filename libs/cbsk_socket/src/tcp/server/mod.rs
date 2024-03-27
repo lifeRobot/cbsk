@@ -1,14 +1,16 @@
 use std::io;
 use std::sync::Arc;
 use std::time::Duration;
-use cbsk_base::{anyhow, log, tokio};
-use cbsk_base::tokio::io::AsyncReadExt;
+use cbsk_base::{log, tokio};
+use cbsk_base::tokio::io::AsyncWriteExt;
 use cbsk_base::tokio::net::tcp::OwnedReadHalf;
 use cbsk_base::tokio::net::TcpListener;
 use cbsk_base::tokio::task::JoinHandle;
 use crate::tcp::server::callback::TcpServerCallBack;
 use crate::tcp::server::client::TcpServerClient;
 use crate::tcp::server::config::TcpServerConfig;
+use crate::tcp::tcp_time_trait::TcpTimeTrait;
+use crate::tcp::tcp_write_trait::TcpWriteTrait;
 
 pub mod config;
 pub mod client;
@@ -94,9 +96,15 @@ impl<C: TcpServerCallBack> TcpServer<C> {
     fn read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) -> JoinHandle<()> {
         let tcp_server = self.clone();
         tokio::spawn(async move {
-            if let Err(e) = tcp_server.try_read_spawn::<N>(client.clone(), read).await {
-                if tcp_server.conf.log { log::error!("{} read tcp client data error: {e:?}",client.log_head); }
-            }
+            let read_headle = tcp_server.try_read_spawn::<N>(client.clone(), read);
+
+            client.wait_read_handle_finished(read_headle, tcp_server.conf.read_time_out, || async {
+                // it is possible that TCP has not been closed here, so notify to close it once
+                if let Ok(tcp_client) = client.try_get_write() {
+                    // ignoring notification results
+                    let _ = tcp_client.as_mut().shutdown().await;
+                }
+            }).await;
 
             // if TCP read is closed, it is considered that TCP has been closed
             tcp_server.cb.dis_conn(client.clone()).await;
@@ -105,29 +113,21 @@ impl<C: TcpServerCallBack> TcpServer<C> {
     }
 
     /// try read tcp client data
-    async fn try_read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, mut read: OwnedReadHalf) -> anyhow::Result<()> {
+    fn try_read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) -> JoinHandle<()> {
         if self.conf.log { log::info!("{} start tcp client read async success",client.log_head); }
-        let mut buf = [0; N];
-        let mut buf_tmp = Vec::new();
+        let tcp_server = self.clone();
 
-        loop {
-            let read = read.read(&mut buf);
-            let len =
-                match tokio::time::timeout(self.conf.read_time_out, read).await {
-                    Ok(read) => { read? }
-                    Err(_e) => {
-                        // if just timeout, continue to next loop
-                        continue;
-                    }
-                };
+        tokio::spawn(async move {
+            let result =
+                client.try_read_data::<N, _, _, _>(read, tcp_server.conf.read_time_out, "server", || {
+                    false
+                }, |data| async {
+                    tcp_server.cb.recv(data, client.clone()).await
+                }).await;
 
-            if len == 0 { return Err(anyhow::anyhow!("read data length is 0, indicating that tcp client is disconnected")); }
-
-            // get data and log println
-            let buf = &buf[0..len];
-            log::trace!("{} TCP read data[{buf:?}] of length {len}",client.log_head);
-            buf_tmp.append(&mut buf.to_vec());
-            buf_tmp = self.cb.recv(buf_tmp, client.clone()).await;
-        }
+            if let Err(e) = result {
+                if tcp_server.conf.log { log::error!("{} read tcp client data error: {e:?}",client.log_head); }
+            }
+        })
     }
 }
