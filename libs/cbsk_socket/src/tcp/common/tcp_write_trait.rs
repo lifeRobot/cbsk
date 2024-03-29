@@ -1,9 +1,6 @@
 use cbsk_base::{anyhow, log};
 use cbsk_base::json::to_json::ToJson;
 use cbsk_base::serde::Serialize;
-use cbsk_base::tokio::io::AsyncWriteExt;
-use cbsk_base::tokio::net::tcp::OwnedWriteHalf;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
 
 /// send data and print log
 macro_rules! send_tcp_log {
@@ -14,9 +11,6 @@ macro_rules! send_tcp_log {
 
 /// tcp write trait
 pub trait TcpWriteTrait {
-    /// try get tcp client write
-    fn try_get_write(&self) -> anyhow::Result<&MutDataObj<OwnedWriteHalf>>;
-
     /// get internal log name
     fn get_log_head(&self) -> &str;
 
@@ -47,10 +41,5 @@ pub trait TcpWriteTrait {
     }
 
     /// try send bytes to TCP
-    async fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
-        let mut write = self.try_get_write()?.as_mut();
-        write.write_all(bytes).await?;
-        write.flush().await?;
-        Ok(())
-    }
+    async fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()>;
 }

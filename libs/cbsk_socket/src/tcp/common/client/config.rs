@@ -16,7 +16,7 @@ pub struct TcpClientConfig {
     /// tcp read data timeout
     pub read_time_out: Duration,
     /// tcp sockets need to be reconnect
-    pub(crate) reconn: MutDataObj<SocketReConn>,
+    pub reconn: MutDataObj<SocketReConn>,
 }
 
 /// custom method

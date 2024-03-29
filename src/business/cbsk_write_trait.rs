@@ -1,10 +1,6 @@
 use cbsk_socket::cbsk_base::{anyhow, log};
 use cbsk_socket::cbsk_base::json::to_json::ToJson;
 use cbsk_socket::cbsk_base::serde::Serialize;
-use cbsk_socket::cbsk_base::tokio::io::AsyncWriteExt;
-use cbsk_socket::cbsk_base::tokio::net::tcp::OwnedWriteHalf;
-use cbsk_socket::cbsk_mut_data::mut_data_obj::MutDataObj;
-use crate::business;
 
 macro_rules! send_cbsk_log {
     ($result:expr,$log_head:expr,$name:expr,$data:expr) => {
@@ -14,13 +10,8 @@ macro_rules! send_cbsk_log {
 
 /// cbsk write data trait
 pub trait CbskWriteTrait {
-    /// try get tcp client write
-    fn try_get_write(&self) -> anyhow::Result<&MutDataObj<OwnedWriteHalf>>;
-
     /// get internal log name
     fn get_log_head(&self) -> &str;
-
-    fn get_header(&self) -> &[u8];
 
     /// send text to cbsk
     async fn send_text(&self, text: &str) {
@@ -49,11 +40,11 @@ pub trait CbskWriteTrait {
     }
 
     /// try send bytes to cbsk
-    async fn try_send_bytes(&self, bytes: Vec<u8>) -> anyhow::Result<()> {
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> anyhow::Result<()>;/*{
         let frame = business::frame(bytes, self.get_header());
         let mut write = self.try_get_write()?.as_mut();
         write.write_all(frame.as_slice()).await?;
         write.flush().await?;
         Ok(())
-    }
+    }*/
 }

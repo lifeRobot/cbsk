@@ -1,13 +1,11 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
-use cbsk_socket::cbsk_base::tokio::net::tcp::OwnedWriteHalf;
 use cbsk_socket::cbsk_base::tokio::task::JoinHandle;
-use cbsk_socket::cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::client::config::TcpClientConfig;
 use cbsk_socket::tcp::client::TcpClient;
-use cbsk_socket::tcp::tcp_write_trait::TcpWriteTrait;
+use cbsk_socket::tcp::common::tcp_write_trait::TcpWriteTrait;
 use crate::business::cbsk_write_trait::CbskWriteTrait;
 use crate::client::business::CbskClientBusiness;
 use crate::client::callback::CbskClientCallBack;
@@ -72,14 +70,20 @@ impl<C: CbskClientCallBack> CbskClient<C> {
     /// stop cbsk server connect<br />
     /// will shutdown tcp connection and will not new connection
     pub async fn stop(&self) {
-        self.tcp_client.stop().await
+        #[cfg(feature = "tokio_tcp")]
+        self.tcp_client.stop().await;
+        #[cfg(feature = "system_tcp")]
+        self.tcp_client.stop();
     }
 
     /// notify tcp to re connect<br />
     /// will shutdown tcp connection, if [`TcpClientConfig`] reconn is disable<br />
     /// will shutdown and create new tcp connection,if [`TcpClientConfig`] reconn is enable
     pub async fn re_conn(&self) {
+        #[cfg(feature = "tokio_tcp")]
         self.tcp_client.re_conn().await;
+        #[cfg(feature = "system_tcp")]
+        self.tcp_client.re_conn();
     }
 
     /// the last time the data was received
@@ -100,15 +104,12 @@ impl<C: CbskClientCallBack> CbskClient<C> {
 
 /// support write data to cbsk
 impl<C: CbskClientCallBack> CbskWriteTrait for CbskClient<C> {
-    fn try_get_write(&self) -> cbsk_socket::cbsk_base::anyhow::Result<&MutDataObj<OwnedWriteHalf>> {
-        self.tcp_client.try_get_write()
-    }
-
     fn get_log_head(&self) -> &str {
         self.tcp_client.get_log_head()
     }
 
-    fn get_header(&self) -> &[u8] {
-        self.tcp_client.cb.header.as_ref()
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> cbsk_base::anyhow::Result<()> {
+        let frame = crate::business::frame(bytes, self.tcp_client.cb.header.as_ref());
+        self.tcp_client.try_send_bytes(frame.as_slice()).await
     }
 }

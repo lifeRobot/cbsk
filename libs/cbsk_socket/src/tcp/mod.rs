@@ -1,6 +1,10 @@
-pub mod tcp_write_trait;
-pub(crate) mod tcp_time_trait;
-#[cfg(feature = "tcp_server")]
-pub mod server;
-#[cfg(feature = "tcp_client")]
-pub mod client;
+#[cfg(all(feature = "tokio_tcp", not(feature = "system_tcp")))]
+pub use tokio::*;
+#[cfg(all(feature = "system_tcp", not(feature = "tokio_tcp")))]
+pub use system::*;
+
+#[cfg(feature = "tokio_tcp")]
+pub mod tokio;
+#[cfg(feature = "system_tcp")]
+pub mod system;
+pub mod common;

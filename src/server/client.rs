@@ -1,10 +1,9 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 use cbsk_socket::cbsk_base::anyhow;
-use cbsk_socket::cbsk_base::tokio::net::tcp::OwnedWriteHalf;
-use cbsk_socket::cbsk_mut_data::mut_data_obj::MutDataObj;
-use cbsk_socket::tcp::server::client::TcpServerClient;
-use cbsk_socket::tcp::tcp_write_trait::TcpWriteTrait;
+use cbsk_socket::tcp::common::server::client::TcpServerClient;
+use cbsk_socket::tcp::common::tcp_write_trait::TcpWriteTrait;
+use crate::business;
 use crate::business::cbsk_write_trait::CbskWriteTrait;
 
 /// cbsk server client
@@ -35,15 +34,12 @@ impl CbskServerClient {
 }
 
 impl CbskWriteTrait for CbskServerClient {
-    fn try_get_write(&self) -> anyhow::Result<&MutDataObj<OwnedWriteHalf>> {
-        self.tcp_server_client.try_get_write()
-    }
-
     fn get_log_head(&self) -> &str {
         self.tcp_server_client.get_log_head()
     }
 
-    fn get_header(&self) -> &[u8] {
-        self.header.as_slice()
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> anyhow::Result<()> {
+        let frame = business::frame(bytes, self.header.as_slice());
+        self.tcp_server_client.try_send_bytes(frame.as_slice()).await
     }
 }

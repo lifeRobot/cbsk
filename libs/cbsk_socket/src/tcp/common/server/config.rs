@@ -8,7 +8,7 @@ pub struct TcpServerConfig {
     /// tcp bind addr
     pub addr: SocketAddr,
     /// internal log name, used for log printing
-    pub(crate) log_head: String,
+    pub log_head: String,
     /// TCP read time out
     pub read_time_out: Duration,
     /// is enable log printing

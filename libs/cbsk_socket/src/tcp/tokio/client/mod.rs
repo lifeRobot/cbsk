@@ -5,13 +5,13 @@ use cbsk_base::tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use cbsk_base::tokio::net::TcpStream;
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
-use crate::tcp::client::callback::TcpClientCallBack;
-use crate::tcp::client::config::TcpClientConfig;
-use crate::tcp::tcp_time_trait::TcpTimeTrait;
-use crate::tcp::tcp_write_trait::TcpWriteTrait;
-
-pub mod config;
-pub mod callback;
+pub use crate::tcp::common::client::callback;
+use crate::tcp::common::client::callback::TcpClientCallBack;
+pub use crate::tcp::common::client::config;
+use crate::tcp::common::client::config::TcpClientConfig;
+use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
+use crate::tcp::common::tcp_write_trait::TcpWriteTrait;
+use crate::tcp::tokio::tokio_tcp_read_trait::TokioTcpReadTrait;
 
 /// tcp client
 pub struct TcpClient<C: TcpClientCallBack> {
@@ -31,7 +31,7 @@ pub struct TcpClient<C: TcpClientCallBack> {
     /// time see [fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<MutDataObj<i64>>,
     /// tcp client writer
-    pub(crate) write: Arc<MutDataObj<Option<MutDataObj<OwnedWriteHalf>>>>,
+    write: Arc<MutDataObj<Option<MutDataObj<OwnedWriteHalf>>>>,
 }
 
 /// support clone
@@ -49,14 +49,22 @@ impl<C: TcpClientCallBack> Clone for TcpClient<C> {
 
 /// support writer trait
 impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
-    fn try_get_write(&self) -> anyhow::Result<&MutDataObj<OwnedWriteHalf>> {
-        self.write.as_ref().as_ref().as_ref().ok_or_else(|| { anyhow::anyhow!("try send data to server, but connect to tcp server not yet") })
-    }
-
     fn get_log_head(&self) -> &str {
         self.conf.log_head.as_str()
     }
+
+    async fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
+        let mut write = cbsk_base::match_some_return!(self.write.as_ref().as_ref(),
+            Err(anyhow::anyhow!("try send data to server, but connect to tcp server not yet"))).as_mut();
+
+        write.write_all(bytes).await?;
+        write.flush().await?;
+        Ok(())
+    }
 }
+
+/// support tcp client read trait
+impl<C: TcpClientCallBack> TokioTcpReadTrait for TcpClient<C> {}
 
 /// support tcp time trait
 impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
@@ -178,7 +186,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         log::info!("{} started tcp server read data async success",self.conf.log_head);
         self.cb.conn().await;
 
-        let read_handle = self.try_read_spawn::<N>(read).into();
+        let read_handle = self.try_read_spawn::<N>(read);
         self.wait_read_handle_finished(read_handle, self.conf.read_time_out, || async {}).await;
 
         // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
@@ -195,7 +203,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         let tcp_client = self.clone();
         tokio::spawn(async move {
             let result =
-                tcp_client.try_read_data::<N, _, _, _>(read, tcp_client.conf.read_time_out, "client", || {
+                tcp_client.try_read_data_tokio::<N, _, _, _>(read, tcp_client.conf.read_time_out, "server", || {
                     tcp_client.write.is_none()
                 }, |data| async {
                     tcp_client.cb.recv(data).await
