@@ -28,18 +28,23 @@ pub trait SystemTcpReadTrait: TcpTimeTrait {
                 match tcp_stream.read(&mut buf) {
                     Ok(len) => { len }
                     Err(e) => {
-                        if let ErrorKind::TimedOut = e.kind() {
-                            self.set_timeout_time_now();
-                            // read time out call timeout_fn
-                            if timeout_fn() {
-                                return Ok(());
-                            }
+                        match e.kind() {
+                            // temporarily assume that timeout equals woldblock
+                            // fix the bug of WoodBlock in some Linux causing TCP to continuously reconnect
+                            ErrorKind::TimedOut | ErrorKind::WouldBlock => {
+                                self.set_timeout_time_now();
+                                // read time out call timeout_fn
+                                if timeout_fn() {
+                                    return Ok(());
+                                }
 
-                            // But if just timeout, continue
-                            continue;
-                        } else {
-                            // order error, only break
-                            break;
+                                // But if just timeout, continue
+                                continue;
+                            }
+                            _ => {
+                                // order error, only break
+                                return Err(e.into());
+                            }
                         }
                     }
                 };
@@ -57,7 +62,5 @@ pub trait SystemTcpReadTrait: TcpTimeTrait {
             buf_tmp.append(&mut buf.to_vec());
             buf_tmp = recv_callback(buf_tmp).await;
         }
-
-        Ok(())
     }
 }

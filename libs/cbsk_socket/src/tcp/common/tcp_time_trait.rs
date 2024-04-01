@@ -57,7 +57,7 @@ pub trait TcpTimeTrait {
                 break;
             }
 
-            // it is possible that tokio::time::timeout has failed, notify read_handle abort, and break loop
+            // it is possible that tokio_runtime::time::timeout has failed, notify read_handle abort, and break loop
             // at this point, it is directly assumed that TCP has been closed
             if timeout_diff > check_time_out && recv_diff > check_time_out {
                 read_handle.abort();

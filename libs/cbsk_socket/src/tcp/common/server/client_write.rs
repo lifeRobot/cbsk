@@ -9,7 +9,7 @@ use cbsk_mut_data::mut_data_obj::MutDataObj;
 
 /// client write enum
 pub enum ClientWrite {
-    /// tokio tcp client write
+    /// tokio_runtime tcp client write
     Tokio(OwnedWriteHalf),
     /// system tcp client write
     System(Arc<MutDataObj<TcpStream>>),

@@ -21,7 +21,7 @@ pub trait TokioTcpReadTrait: TcpTimeTrait {
         loop {
             let read = read.read(&mut buf);
             let len =
-                // the timeout of tokio may be an issue, which may cause the CPU to idle. It needs to be fixed here
+                // the timeout of tokio_runtime may be an issue, which may cause the CPU to idle. It needs to be fixed here
                 match tokio::time::timeout(read_time_out, read).await {
                     Ok(read) => { read? }
                     Err(_) => {

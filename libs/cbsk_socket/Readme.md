@@ -16,12 +16,15 @@ Rust 1.75.0
 
 ### tcp server example
 
+<details>
+<summary>tcp server example</summary>
+
 Cargo.toml file:
 
 ```toml
 fast_log = "1.6.12"
 cbsk_base = { version = "0.1.7" }
-cbsk_socket = { version = "0.4.0", features = ["tcp_server"] }
+cbsk_socket = { version = "0.5.0", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -73,14 +76,19 @@ impl TcpServerCallBack for TcpServerBusiness {
 }
 ```
 
+</details>
+
 ### tcp client example
+
+<details>
+<summary>tcp client example</summary>
 
 Cargo.toml file:
 
 ```toml
 fast_log = "1.6.12"
 cbsk_base = { version = "0.1.7" }
-cbsk_socket = { version = "0.4.0", features = ["tcp_client"] }
+cbsk_socket = { version = "0.5.0", features = ["tcp_client"] }
 ```
 
 main.rs file:
@@ -141,8 +149,24 @@ impl TcpClientCallBack for TcpClientBusiness {
 }
 ```
 
+</details>
+
+### features explain
+
+the following features are only valid for `tcp_server` or `tcp_client`
+
+* default is `tokio_tcp`, use tokio runtime and tokio tcp
+* `tokio_tcp`, use tokio runtime and tokio tcp
+* `system_tcp`, use tokio runtime and system tcp
+* `tcp_runtime_thread` use thread and system tcp
+
 ### other issues
 
-websocket tls coming soon  
-if y want to use tls, y can
-use [tokio-tungstenite](https://crates.io/crates/tokio-tungstenite)([github](https://github.com/snapview/tokio-tungstenite))
+1. The reason for adding system tcp and thread runtime is that during some Linux testing, there was a deadlock issue
+   with `tokio::net::TcpStream` + `tokio runtime`, causing tokio to not run. As this Linux is customized, we are currently
+   unable to provide testable issues to Tokio. If you are using Windows, Windows Server 2012, macos, ubuntu, etc., this
+   cargo crate is normal and you can use the default `tokio_tcp`
+
+2. websocket tls coming soon  
+   if y want to use tls, y can
+   use [tokio-tungstenite](https://crates.io/crates/tokio-tungstenite)([github](https://github.com/snapview/tokio-tungstenite))

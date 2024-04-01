@@ -14,13 +14,15 @@ repository = "https://github.com/lifeRobot/cbsk"
 
 [dependencies]
 cbsk_base = { version = "0.1.7", default-features = false, features = ["macro"] }
-cbsk_socket = { version = "0.4.0", default-features = false }
+cbsk_socket = { path = "libs/cbsk_socket", default-features = false }
+#cbsk_socket = { version = "0.4.0", default-features = false }
 
 [features]
-default = ["client", "system_tcp"]
+default = ["client", "tokio_tcp", "tcp_runtime_thread"]
 # use system tcp
 system_tcp = ["cbsk_socket/system_tcp"]
-# use tokio tcp
+# use tokio_runtime tcp
 tokio_tcp = ["cbsk_socket/tokio_tcp"]
+tcp_runtime_thread = ["cbsk_socket/tcp_runtime_thread"]
 client = ["cbsk_socket/tcp_client"]
 server = ["cbsk_socket/tcp_server"]

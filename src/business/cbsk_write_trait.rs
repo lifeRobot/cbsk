@@ -40,11 +40,5 @@ pub trait CbskWriteTrait {
     }
 
     /// try send bytes to cbsk
-    async fn try_send_bytes(&self, bytes: Vec<u8>) -> anyhow::Result<()>;/*{
-        let frame = business::frame(bytes, self.get_header());
-        let mut write = self.try_get_write()?.as_mut();
-        write.write_all(frame.as_slice()).await?;
-        write.flush().await?;
-        Ok(())
-    }*/
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> anyhow::Result<()>;
 }

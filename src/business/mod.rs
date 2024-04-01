@@ -1,7 +1,10 @@
 use crate::data::analysis_data::AnalysisData;
 use crate::data::verify_data::VerifyData;
 
+#[cfg(any(feature = "system_tcp", feature = "tokio_tcp"))]
 pub mod cbsk_write_trait;
+#[cfg(feature = "tcp_runtime_thread")]
+pub mod cbsk_write_trait_thread;
 
 /// check verify data is too short
 macro_rules! verify_too_short {
