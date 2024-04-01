@@ -86,3 +86,18 @@ impl CbskClientCallBack for CbskClientBusiness {
     }
 }
 ```
+
+### features explain
+
+1. default is `client` and `tokio_tcp`
+2. `system_tcp`, use system tcp and tokio runtime
+3. `tokio_tcp`, use tokio tcp and tokio runtime
+4. `tcp_runtime_thread`, use system tcp and system thread runtime
+
+### other issues
+
+1. The reason for adding system tcp and thread runtime is that during some Linux testing, there was a deadlock issue
+   with `tokio::net::TcpStream` + `tokio runtime`, causing tokio to not run. As this Linux is customized, we are
+   currently
+   unable to provide testable issues to Tokio. If you are using Windows, Windows Server 2012, macos, ubuntu, etc., this
+   cargo crate is normal and you can use the default `tokio_tcp`

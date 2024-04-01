@@ -1,6 +1,6 @@
 [package]
 name = "cbsk"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "cbsk is a callback socket tool"
 readme = "Readme.md"
@@ -14,11 +14,10 @@ repository = "https://github.com/lifeRobot/cbsk"
 
 [dependencies]
 cbsk_base = { version = "0.1.7", default-features = false, features = ["macro"] }
-cbsk_socket = { path = "libs/cbsk_socket", default-features = false }
-#cbsk_socket = { version = "0.4.0", default-features = false }
+cbsk_socket = { version = "0.5.0", default-features = false }
 
 [features]
-default = ["client", "tokio_tcp", "tcp_runtime_thread"]
+default = ["client", "tokio_tcp"]
 # use system tcp
 system_tcp = ["cbsk_socket/system_tcp"]
 # use tokio_runtime tcp
