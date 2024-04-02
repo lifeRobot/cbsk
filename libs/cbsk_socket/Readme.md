@@ -22,9 +22,9 @@ Rust 1.75.0
 Cargo.toml file:
 
 ```toml
-fast_log = "1.6.12"
-cbsk_base = { version = "0.1.7" }
-cbsk_socket = { version = "0.5.0", features = ["tcp_server"] }
+fast_log = "1.6.16"
+cbsk_base = { version = "0.1.8" }
+cbsk_socket = { version = "0.5.1", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -86,9 +86,9 @@ impl TcpServerCallBack for TcpServerBusiness {
 Cargo.toml file:
 
 ```toml
-fast_log = "1.6.12"
-cbsk_base = { version = "0.1.7" }
-cbsk_socket = { version = "0.5.0", features = ["tcp_client"] }
+fast_log = "1.6.16"
+cbsk_base = { version = "0.1.8" }
+cbsk_socket = { version = "0.5.1", features = ["tcp_client"] }
 ```
 
 main.rs file:

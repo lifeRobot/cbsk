@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 use cbsk_base::{anyhow, log, tokio};
 use cbsk_base::tokio::net::TcpStream;
 use cbsk_base::tokio::task::JoinHandle;
@@ -141,10 +142,24 @@ impl<C: WsClientCallBack> WsClient<C> {
             let msg =
                 match tokio::time::timeout(self.conf.read_time_out, read).await {
                     Ok(msg) => {
-                        // if read empty data, continue to next loop
-                        cbsk_base::match_some_exec!(msg,{continue;})?
+                        cbsk_base::match_some_exec!(msg,{
+                            // read empty data, it is possible that ws has already been shut down
+                            if self.write.is_none(){
+                                return Ok(());
+                            }
+
+                            // if read empty data, and ws connection is normal, sleep 1 millis, and continue to next loop
+                            // read empty data, which may indicate a bug in tokio_tungstenite, so sleep for 1 millimeter and repeat the loop
+                            tokio::time::sleep(Duration::from_millis(1)).await;
+                            continue;
+                        })?
                     }
                     Err(_e) => {
+                        // if ws has already been shut down, exit loop
+                        if self.write.is_none() {
+                            return Ok(());
+                        }
+
                         // if just timeout, continue
                         continue;
                     }

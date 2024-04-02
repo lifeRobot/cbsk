@@ -22,8 +22,8 @@ cbsk has a custom TCP data verification protocol internally, and the protocol lo
 Cargo.toml:
 
 ```toml
-cbsk_base = { version = "0.1.7", default-features = false, features = ["once_cell"] }
-cbsk = { version = "0.2.0", features = ["server"] }
+cbsk_base = { version = "0.1.8", default-features = false, features = ["once_cell"] }
+cbsk = { version = "0.3.1", features = ["server"] }
 ```
 
 main.rs:
