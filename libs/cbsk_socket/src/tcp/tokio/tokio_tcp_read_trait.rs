@@ -1,4 +1,5 @@
 use std::future::Future;
+use std::io::ErrorKind;
 use std::time::Duration;
 use cbsk_base::{anyhow, log, tokio};
 use cbsk_base::tokio::io::AsyncReadExt;
@@ -23,7 +24,30 @@ pub trait TokioTcpReadTrait: TcpTimeTrait {
             let len =
                 // the timeout of tokio_runtime may be an issue, which may cause the CPU to idle. It needs to be fixed here
                 match tokio::time::timeout(read_time_out, read).await {
-                    Ok(read) => { read? }
+                    Ok(read) => {
+                        match read {
+                            Ok(len) => { len }
+                            Err(e) => {
+                                match e.kind() {
+                                    ErrorKind::TimedOut | ErrorKind::WouldBlock => {
+                                        // log::info!("{} time out",self.get_log_head());
+                                        // set timeout time
+                                        self.set_timeout_time_now();
+                                        // if just timeout, check write is conn
+                                        if timeout_fn() {
+                                            // if timeout_fn return true, exit the loop directly
+                                            return Ok(());
+                                        }
+                                        // But if just timeout, continue
+                                        continue;
+                                    }
+                                    _ => {
+                                        return Err(e.into());
+                                    }
+                                }
+                            }
+                        }
+                    }
                     Err(_) => {
                         // log::info!("{} time out",self.get_log_head());
                         // set timeout time
