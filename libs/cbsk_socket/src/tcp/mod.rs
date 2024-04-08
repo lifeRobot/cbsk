@@ -8,5 +8,7 @@ pub mod tokio;
 #[cfg(all(feature = "system_tcp", feature = "tcp_runtime_tokio"))]
 pub mod system;
 pub mod common;
-// #[cfg(feature = "tcp_runtime_thread")]
+#[cfg(feature = "tcp_runtime_thread")]
 pub mod thread;
+// #[cfg(feature = "tcp_runtime_rayon")]
+pub mod rayon;

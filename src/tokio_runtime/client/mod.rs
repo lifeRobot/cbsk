@@ -5,7 +5,7 @@ use cbsk_socket::cbsk_base::tokio::task::JoinHandle;
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::client::config::TcpClientConfig;
 use cbsk_socket::tcp::client::TcpClient;
-use cbsk_socket::tcp::common::tcp_write_trait::TcpWriteTrait;
+use cbsk_socket::tcp::common::r#async::tcp_write_trait::TcpWriteTrait;
 use crate::business::cbsk_write_trait::CbskWriteTrait;
 use crate::client::business::CbskClientBusiness;
 use crate::client::callback::CbskClientCallBack;

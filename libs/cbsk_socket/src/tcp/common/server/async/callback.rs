@@ -1,7 +1,7 @@
 use std::future::Future;
 use std::sync::Arc;
 use cbsk_base::log;
-use crate::tcp::common::server::client::TcpServerClient;
+use crate::tcp::common::server::r#async::client::TcpServerClient;
 
 /// tcp connect and read data callback
 pub trait TcpServerCallBack: Send + Sync + 'static {

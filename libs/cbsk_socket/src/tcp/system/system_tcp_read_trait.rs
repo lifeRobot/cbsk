@@ -5,10 +5,10 @@ use std::sync::Arc;
 use std::time::Duration;
 use cbsk_base::{anyhow, log};
 use cbsk_mut_data::mut_data_obj::MutDataObj;
-use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
+use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
 
 /// cbsk socket tcp read trait
-pub trait SystemTcpReadTrait: TcpTimeTrait {
+pub trait SystemTcpReadTrait: AsyncTcpTimeTrait {
     async fn try_read_data_system<const N: usize, TO, R, O>(
         &self, tcp_stream: Arc<MutDataObj<TcpStream>>, read_time_out: Duration, msg: &'static str, timeout_fn: TO, recv_callback: R)
         -> anyhow::Result<()>

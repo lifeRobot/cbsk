@@ -5,13 +5,13 @@ use cbsk_base::{log, tokio};
 use cbsk_base::tokio::net::tcp::OwnedReadHalf;
 use cbsk_base::tokio::net::TcpListener;
 use cbsk_base::tokio::task::JoinHandle;
-pub use crate::tcp::common::server::callback;
-use crate::tcp::common::server::callback::TcpServerCallBack;
-pub use crate::tcp::common::server::client;
-use crate::tcp::common::server::client::TcpServerClient;
+use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
+pub use crate::tcp::common::server::r#async::callback;
+use crate::tcp::common::server::r#async::callback::TcpServerCallBack;
+pub use crate::tcp::common::server::r#async::client;
+use crate::tcp::common::server::r#async::client::TcpServerClient;
 pub use crate::tcp::common::server::config;
 use crate::tcp::common::server::config::TcpServerConfig;
-use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
 use crate::tcp::tokio::tokio_tcp_read_trait::TokioTcpReadTrait;
 
 /// tcp server
@@ -82,7 +82,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
         let (read, write) = tcp_stream.into_split();
 
         // start read data
-        let client = Arc::new(TcpServerClient::new(addr, self.conf.as_ref(), write.into()));
+        let client = Arc::new(client::TcpServerClient::new(addr, self.conf.as_ref(), write.into()));
         read_handles.push(self.read_spawn::<N>(client.clone(), read));
         self.cb.conn(client).await;
 

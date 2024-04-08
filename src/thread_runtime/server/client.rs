@@ -1,8 +1,8 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 use cbsk_base::anyhow;
+use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
 use cbsk_socket::tcp::thread::server::client::TcpServerClient;
-use cbsk_socket::tcp::thread::tcp_write_trait::TcpWriteTrait;
 use crate::business;
 use crate::business::cbsk_write_trait_thread::CbskWriteTrait;
 

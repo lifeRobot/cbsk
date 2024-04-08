@@ -2,10 +2,11 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use cbsk_base::anyhow;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
-use crate::tcp::common::server::client_write::ClientWrite;
+use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
+use crate::tcp::common::r#async::tcp_write_trait::TcpWriteTrait;
+use crate::tcp::common::server::r#async::client_write::ClientWrite;
 use crate::tcp::common::server::config::TcpServerConfig;
 use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
-use crate::tcp::common::tcp_write_trait::TcpWriteTrait;
 #[cfg(feature = "system_tcp")]
 use crate::tcp::system::system_tcp_read_trait::SystemTcpReadTrait;
 #[cfg(feature = "tokio_tcp")]
@@ -24,7 +25,7 @@ pub struct TcpServerClient {
     /// time see [fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<MutDataObj<i64>>,
     /// tcp client write
-    pub(crate) write: Arc<MutDataObj<ClientWrite>>,
+    pub write: Arc<MutDataObj<ClientWrite>>,
 }
 
 /// custom method
@@ -47,19 +48,19 @@ impl TcpTimeTrait for TcpServerClient {
     fn set_recv_time(&self, time: i64) {
         self.recv_time.set(time)
     }
-
     fn get_recv_time(&self) -> i64 {
         **self.recv_time
     }
-
     fn set_timeout_time(&self, time: i64) {
         self.timeout_time.set(time)
     }
-
     fn get_timeout_time(&self) -> i64 {
         **self.timeout_time
     }
+}
 
+/// support tcp time trait
+impl AsyncTcpTimeTrait for TcpServerClient {
     fn get_log_head(&self) -> &str {
         self.log_head.as_str()
     }

@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use cbsk_socket::tcp::thread::client::callback::TcpClientCallBack;
+use cbsk_socket::tcp::common::client::sync::callback::TcpClientCallBack;
 use crate::{business, data};
 use crate::thread_runtime::client::callback::CbskClientCallBack;
 

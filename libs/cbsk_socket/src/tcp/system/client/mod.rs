@@ -4,12 +4,13 @@ use std::sync::Arc;
 use cbsk_base::{anyhow, log, tokio};
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
+use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
+use crate::tcp::common::r#async::tcp_write_trait::TcpWriteTrait;
 pub use crate::tcp::common::client::callback;
 use crate::tcp::common::client::callback::TcpClientCallBack;
 pub use crate::tcp::common::client::config;
 use crate::tcp::common::client::config::TcpClientConfig;
 use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
-use crate::tcp::common::tcp_write_trait::TcpWriteTrait;
 use crate::tcp::system::system_tcp_read_trait::SystemTcpReadTrait;
 
 /// tcp client
@@ -75,6 +76,10 @@ impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
     fn get_timeout_time(&self) -> i64 {
         **self.timeout_time
     }
+}
+
+/// support tcp time trait
+impl<C: TcpClientCallBack> AsyncTcpTimeTrait for TcpClient<C> {
     fn get_log_head(&self) -> &str {
         self.conf.log_head.as_str()
     }

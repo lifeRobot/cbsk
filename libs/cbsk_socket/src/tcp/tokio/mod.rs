@@ -1,4 +1,4 @@
-pub use super::common::tcp_write_trait;
+pub use super::common::r#async::tcp_write_trait;
 
 #[cfg(feature = "tcp_server")]
 pub mod server;

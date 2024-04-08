@@ -4,10 +4,10 @@ use std::time::Duration;
 use cbsk_base::{anyhow, log, tokio};
 use cbsk_base::tokio::io::AsyncReadExt;
 use cbsk_base::tokio::net::tcp::OwnedReadHalf;
-use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
+use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
 
 /// cbsk socket tcp read trait
-pub trait TokioTcpReadTrait: TcpTimeTrait {
+pub trait TokioTcpReadTrait: AsyncTcpTimeTrait {
     /// read data
     async fn try_read_data_tokio<const N: usize, TO, R, O>
     (&self, mut read: OwnedReadHalf, read_time_out: Duration, msg: &'static str, timeout_fn: TO, recv_callback: R)

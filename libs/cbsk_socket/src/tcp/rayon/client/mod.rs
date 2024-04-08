@@ -1,8 +1,7 @@
+use std::{io, thread};
 use std::io::Write;
 use std::net::{Shutdown, TcpStream};
 use std::sync::Arc;
-use std::{io, thread};
-use std::thread::JoinHandle;
 use cbsk_base::{anyhow, log};
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::tcp::common::client::config::TcpClientConfig;
@@ -10,7 +9,7 @@ use crate::tcp::common::client::sync::callback::TcpClientCallBack;
 use crate::tcp::common::sync::sync_tcp_time_trait::SyncTcpTimeTrait;
 use crate::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
 use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
-use crate::tcp::thread::thread_tcp_time_trait::ThreadTcpTimeTrait;
+use crate::tcp::rayon::rayon_tcp_time_trait::RayonTcpTimeTrait;
 
 /// tcp client
 pub struct TcpClient<C: TcpClientCallBack> {
@@ -28,6 +27,9 @@ pub struct TcpClient<C: TcpClientCallBack> {
     /// the tcp last read timeout
     /// time see [fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<MutDataObj<i64>>,
+    /// because it is not possible to know whether the thread has completed execution in Rayon,
+    /// a property of whether it has been read has been added
+    read_end: Arc<MutDataObj<bool>>,
     /// tcp client
     tcp_client: Arc<MutDataObj<Option<Arc<MutDataObj<TcpStream>>>>>,
 }
@@ -40,6 +42,7 @@ impl<C: TcpClientCallBack> Clone for TcpClient<C> {
             cb: self.cb.clone(),
             recv_time: self.recv_time.clone(),
             timeout_time: self.timeout_time.clone(),
+            read_end: self.read_end.clone(),
             tcp_client: self.tcp_client.clone(),
         }
     }
@@ -69,13 +72,18 @@ impl<C: TcpClientCallBack> SyncTcpTimeTrait for TcpClient<C> {
 }
 
 /// support tcp time trait
-impl<C: TcpClientCallBack> ThreadTcpTimeTrait for TcpClient<C> {}
+impl<C: TcpClientCallBack> RayonTcpTimeTrait for TcpClient<C> {
+    fn get_read_end(&self) -> bool {
+        **self.read_end
+    }
+}
 
 /// support tcp write trait
 impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
     fn get_log_head(&self) -> &str {
         self.conf.log_head.as_str()
     }
+
     fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
         let mut tcp_client = cbsk_base::match_some_return!(self.tcp_client.as_ref().as_ref(),
             Err(anyhow::anyhow!("try send data to server, but connect to tcp server not yet"))).as_mut();
@@ -85,6 +93,8 @@ impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
         Ok(())
     }
 }
+
+// TODO the following code is highly consistent with thread::TcpClient, it is recommended to package it
 
 /// data init etc
 impl<C: TcpClientCallBack> TcpClient<C> {
@@ -96,6 +106,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
             cb,
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
+            read_end: Arc::new(Default::default()),
             tcp_client: Arc::new(MutDataObj::default()),
         }
     }
@@ -135,18 +146,30 @@ impl<C: TcpClientCallBack> TcpClient<C> {
 /// tcp read logic
 impl<C: TcpClientCallBack> TcpClient<C> {
     /// start tcp client<br />
+    /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value<br />
+    /// the current method may not be safe, please use [self.try_start]
+    #[deprecated(note = "the current method may not be safe, please use try_start")]
+    pub fn start<const N: usize>(&self) {
+        if let Err(e) = self.try_start::<N>() {
+            log::error!("failed to set the number of thread pools, the program may not run properly: {e:?}");
+        }
+    }
+
+    /// start tcp client<br />
     /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value
-    pub fn start<const N: usize>(&self) -> JoinHandle<()> {
+    pub fn try_start<const N: usize>(&self) -> Result<(), rayon::ThreadPoolBuildError> {
+        super::set_min_threads()?;
+
         let tcp_client = self.clone();
-        thread::spawn(move || {
-            // there are two loops here, so it should be possible to optimize them
+        rayon::spawn(move || {
             loop {
                 tcp_client.conn::<N>();
 
                 if !tcp_client.conf.reconn.enable { break; }
                 log::error!("{} tcp server disconnected, preparing for reconnection",tcp_client.conf.log_head);
             }
-        })
+        });
+        Ok(())
     }
 
     /// connect tcp server and start read data
@@ -182,8 +205,8 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         self.cb.conn();
 
         // read data logic
-        let handle = self.try_read_spawn::<N>(tcp_stream);
-        self.wait_read_handle_finished(handle, self.conf.read_time_out, || {});
+        self.try_read_spawn::<N>(tcp_stream);
+        self.wait_read_finished(self.conf.read_time_out, || {});
 
         // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
         self.shutdown();
@@ -192,11 +215,12 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     }
 
     /// read data handle
-    fn try_read_spawn<const N: usize>(&self, tcp_stream: Arc<MutDataObj<TcpStream>>) -> JoinHandle<()> {
+    fn try_read_spawn<const N: usize>(&self, tcp_stream: Arc<MutDataObj<TcpStream>>) {
         self.set_now();
 
         let tcp_client = self.clone();
-        thread::spawn(move || {
+        rayon::spawn(move || {
+            tcp_client.read_end.set_false();
             let result = tcp_client.try_read_data::<N, _, _>(tcp_stream, tcp_client.conf.read_time_out, "server", || {
                 tcp_client.tcp_client.is_none()
             }, |bytes| {
@@ -208,6 +232,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
                     log::error!("{} tcp server read data error: {e:?}",tcp_client.conf.log_head);
                 }
             }
+            tcp_client.read_end.set_true();
         })
     }
 

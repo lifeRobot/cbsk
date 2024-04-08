@@ -5,12 +5,13 @@ use cbsk_base::tokio::net::tcp::{OwnedReadHalf, OwnedWriteHalf};
 use cbsk_base::tokio::net::TcpStream;
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
-pub use crate::tcp::common::client::callback;
-use crate::tcp::common::client::callback::TcpClientCallBack;
+use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
+use crate::tcp::common::r#async::tcp_write_trait::TcpWriteTrait;
+pub use crate::tcp::common::client::r#async::callback;
+use crate::tcp::common::client::r#async::callback::TcpClientCallBack;
 pub use crate::tcp::common::client::config;
 use crate::tcp::common::client::config::TcpClientConfig;
 use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
-use crate::tcp::common::tcp_write_trait::TcpWriteTrait;
 use crate::tcp::tokio::tokio_tcp_read_trait::TokioTcpReadTrait;
 
 /// tcp client
@@ -66,24 +67,24 @@ impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
 /// support tcp client read trait
 impl<C: TcpClientCallBack> TokioTcpReadTrait for TcpClient<C> {}
 
-/// support tcp time trait
+///  support tcp time trait
 impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
     fn set_recv_time(&self, time: i64) {
         self.recv_time.set(time)
     }
-
     fn get_recv_time(&self) -> i64 {
         **self.recv_time
     }
-
     fn set_timeout_time(&self, time: i64) {
         self.timeout_time.set(time)
     }
-
     fn get_timeout_time(&self) -> i64 {
         **self.timeout_time
     }
+}
 
+/// support tcp time trait
+impl<C: TcpClientCallBack> AsyncTcpTimeTrait for TcpClient<C> {
     fn get_log_head(&self) -> &str {
         self.conf.log_head.as_str()
     }

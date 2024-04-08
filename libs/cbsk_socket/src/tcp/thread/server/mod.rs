@@ -6,9 +6,10 @@ use std::time::Duration;
 use cbsk_base::log;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::tcp::common::server::config::TcpServerConfig;
+use crate::tcp::common::sync::sync_tcp_time_trait::SyncTcpTimeTrait;
 use crate::tcp::thread::server::callback::TcpServerCallBack;
 use crate::tcp::thread::server::client::TcpServerClient;
-use crate::tcp::thread::tcp_time_trait::TcpTimeTrait;
+use crate::tcp::thread::thread_tcp_time_trait::ThreadTcpTimeTrait;
 
 pub mod callback;
 pub mod client;
