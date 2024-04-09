@@ -11,8 +11,8 @@ use crate::tcp::thread::server::callback::TcpServerCallBack;
 use crate::tcp::thread::server::client::TcpServerClient;
 use crate::tcp::thread::thread_tcp_time_trait::ThreadTcpTimeTrait;
 
-pub mod callback;
 pub mod client;
+pub mod callback;
 
 /// tcp server
 pub struct TcpServer<C: TcpServerCallBack> {
@@ -88,7 +88,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
         Ok(())
     }
 
-    /// start read async
+    /// start read thread
     fn read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, read: Arc<MutDataObj<TcpStream>>) -> JoinHandle<()> {
         let tcp_server = self.clone();
         thread::spawn(move || {

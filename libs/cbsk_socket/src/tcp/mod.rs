@@ -10,5 +10,5 @@ pub mod system;
 pub mod common;
 #[cfg(feature = "tcp_runtime_thread")]
 pub mod thread;
-// #[cfg(feature = "tcp_runtime_rayon")]
+#[cfg(feature = "tcp_runtime_rayon")]
 pub mod rayon;

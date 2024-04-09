@@ -34,4 +34,23 @@ pub trait TcpTimeTrait {
     fn now() -> i64 {
         DateTime::now().unix_timestamp_millis()
     }
+
+
+    /// set is wait callback
+    fn set_wait_callback(&self, is_wait: bool);
+
+    /// get is wait callback
+    fn get_wait_callback(&self) -> bool;
+
+    /// need wait callback finish business logic
+    fn wait_callback(&self) {
+        self.set_wait_callback(true);
+    }
+
+    /// callback the business logic has been completed
+    fn finish_callback(&self) {
+        self.set_wait_callback(false);
+        // if finish callback, default timeout is now
+        self.set_timeout_time_now();
+    }
 }

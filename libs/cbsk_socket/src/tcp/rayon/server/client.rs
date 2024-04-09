@@ -2,11 +2,12 @@ use std::io::Write;
 use std::net::{SocketAddr, TcpStream};
 use std::sync::Arc;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
+use rayon::ThreadPool;
 use crate::tcp::common::server::config::TcpServerConfig;
 use crate::tcp::common::sync::sync_tcp_time_trait::SyncTcpTimeTrait;
 use crate::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
 use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
-use crate::tcp::thread::thread_tcp_time_trait::ThreadTcpTimeTrait;
+use crate::tcp::rayon::rayon_tcp_time_trait::RayonTcpTimeTrait;
 
 /// tcp client
 pub struct TcpServerClient {
@@ -20,6 +21,11 @@ pub struct TcpServerClient {
     /// the tcp last read timeout<br />
     /// time see [fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<MutDataObj<i64>>,
+    /// because it is not possible to know whether the thread has completed execution in Rayon,
+    /// a property of whether it has been read has been added
+    pub(crate) read_end: Arc<MutDataObj<bool>>,
+    /// rayon thread pool, default 2 threads
+    pub(crate) thread_pool: Arc<ThreadPool>,
     /// tcp client write
     pub(crate) write: Arc<MutDataObj<TcpStream>>,
     /// is wait callback
@@ -29,16 +35,18 @@ pub struct TcpServerClient {
 /// custom method
 impl TcpServerClient {
     /// create tcp server client
-    pub fn new(addr: SocketAddr, conf: &TcpServerConfig, write: Arc<MutDataObj<TcpStream>>) -> Self {
+    pub fn try_new(addr: SocketAddr, conf: &TcpServerConfig, write: Arc<MutDataObj<TcpStream>>) -> Result<Self, rayon::ThreadPoolBuildError> {
         let log_head = format!("{} tcp client[{}]", conf.name, addr);
-        Self {
+        Ok(Self {
             addr,
             log_head,
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
+            read_end: Arc::new(MutDataObj::default()),
+            thread_pool: Arc::new(rayon::ThreadPoolBuilder::new().num_threads(2).build()?),
             write,
             wait_callback: Arc::new(Default::default()),
-        }
+        })
     }
 }
 
@@ -72,7 +80,11 @@ impl SyncTcpTimeTrait for TcpServerClient {
 }
 
 /// support tcp time trait
-impl ThreadTcpTimeTrait for TcpServerClient {}
+impl RayonTcpTimeTrait for TcpServerClient {
+    fn get_read_end(&self) -> bool {
+        **self.read_end
+    }
+}
 
 /// support tcp write trait
 impl TcpWriteTrait for TcpServerClient {

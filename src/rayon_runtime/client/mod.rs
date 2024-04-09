@@ -1,16 +1,16 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::thread::JoinHandle;
 use std::time::Duration;
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::common::client::config::TcpClientConfig;
 use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
-use cbsk_socket::tcp::thread::client::TcpClient;
+use cbsk_socket::tcp::rayon::client::TcpClient;
 use crate::business::cbsk_write_trait_thread::CbskWriteTrait;
 use crate::business::client_callback_thread::CbskClientCallBack;
-use crate::thread_runtime::client::business::CbskClientBusiness;
+use crate::rayon_runtime::client::business::CbskClientBusiness;
 
 pub mod business;
+
 
 /// cbsk client
 pub struct CbskClient<C: CbskClientCallBack> {
@@ -56,8 +56,9 @@ impl<C: CbskClientCallBack> CbskClient<C> {
     }
 
     /// start cbsk client
-    /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value
-    pub fn start<const N: usize>(&self) -> JoinHandle<()> {
+    /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value<br />
+    /// /// please ensure that the main thread does not end, otherwise this TCP will automatically end, more see [TcpClient::start]
+    pub fn start<const N: usize>(&self) {
         self.tcp_client.start::<N>()
     }
 

@@ -1,6 +1,6 @@
 use std::future::Future;
 use std::time::Duration;
-use cbsk_base::tokio;
+use cbsk_base::{log, tokio};
 use cbsk_base::tokio::task::JoinHandle;
 use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
 
@@ -26,7 +26,8 @@ pub trait AsyncTcpTimeTrait: TcpTimeTrait {
 
             // it is possible that tokio_runtime::time::timeout has failed, notify read_handle abort, and break loop
             // at this point, it is directly assumed that TCP has been closed
-            if timeout_diff > check_time_out && recv_diff > check_time_out {
+            if !self.get_wait_callback() && timeout_diff > check_time_out && recv_diff > check_time_out {
+                log::info!("neet abort");
                 read_handle.abort();
                 abort_fn().await;
                 break;

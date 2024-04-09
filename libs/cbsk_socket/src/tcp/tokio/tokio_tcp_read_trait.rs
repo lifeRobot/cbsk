@@ -17,7 +17,7 @@ pub trait TokioTcpReadTrait: AsyncTcpTimeTrait {
         self.set_now();
 
         let mut buf = [0; N];
-        let mut buf_tmp = Vec::new();
+        let mut buf_tmp = Vec::with_capacity(N);
 
         loop {
             let read = read.read(&mut buf);
@@ -73,7 +73,16 @@ pub trait TokioTcpReadTrait: AsyncTcpTimeTrait {
             log::trace!("{} tcp read data[{buf:?}] of length {len}",self.get_log_head());
             // merge data and transfer to callback
             buf_tmp.append(&mut buf.to_vec());
+            self.wait_callback();
             buf_tmp = recv_callback(buf_tmp).await;
+
+            // check capacity, to reduce memory fragmentation
+            if buf_tmp.capacity() < N {
+                let mut new_buf_tmp = Vec::with_capacity(N);
+                new_buf_tmp.append(&mut buf_tmp);
+                buf_tmp = new_buf_tmp;
+            }
+            self.finish_callback();
         }
     }
 }

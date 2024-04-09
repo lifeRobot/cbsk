@@ -23,7 +23,7 @@ pub trait RayonTcpTimeTrait: SyncTcpTimeTrait {
 
             // it is possible that tokio_runtime::time::timeout has failed, notify read_handle abort, and break loop
             // at this point, it is directly assumed that TCP has been closed
-            if timeout_diff > check_time_out && recv_diff > check_time_out {
+            if !self.get_wait_callback() && timeout_diff > check_time_out && recv_diff > check_time_out {
                 // TODO rayon neet abort, but rayon not abort function
                 abort_fn();
                 break;

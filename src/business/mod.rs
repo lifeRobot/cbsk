@@ -3,8 +3,10 @@ use crate::data::verify_data::VerifyData;
 
 #[cfg(any(feature = "system_tcp", feature = "tokio_tcp"))]
 pub mod cbsk_write_trait;
-#[cfg(feature = "tcp_runtime_thread")]
+#[cfg(any(feature = "tcp_runtime_thread", feature = "tcp_runtime_rayon"))]
 pub mod cbsk_write_trait_thread;
+#[cfg(any(feature = "tcp_runtime_thread", feature = "tcp_runtime_rayon"))]
+pub mod client_callback_thread;
 
 /// check verify data is too short
 macro_rules! verify_too_short {

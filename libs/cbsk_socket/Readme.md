@@ -24,7 +24,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.16"
 cbsk_base = { version = "0.1.8" }
-cbsk_socket = { version = "0.5.2", features = ["tcp_server"] }
+cbsk_socket = { version = "0.6.0", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -88,7 +88,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.16"
 cbsk_base = { version = "0.1.8" }
-cbsk_socket = { version = "0.5.2", features = ["tcp_client"] }
+cbsk_socket = { version = "0.6.0", features = ["tcp_client"] }
 ```
 
 main.rs file:
@@ -155,15 +155,17 @@ impl TcpClientCallBack for TcpClientBusiness {
 
 the following features are only valid for `tcp_server` or `tcp_client`
 
-* default is `tokio_tcp`, use tokio runtime and tokio tcp
-* `tokio_tcp`, use tokio runtime and tokio tcp
-* `system_tcp`, use tokio runtime and system tcp
-* `tcp_runtime_thread` use thread and system tcp
+1. default is `tokio_tcp`, use tokio runtime and tokio tcp
+2. `tokio_tcp`, use tokio runtime and tokio tcp
+3. `system_tcp`, use tokio runtime and system tcp
+4. `tcp_runtime_thread` use thread and system tcp
+5. `tcp_runtime_rayon` use rayon thread pool runtime and system tcp, more see [rayon](https://crates.io/crates/rayon)
 
 ### other issues
 
 1. The reason for adding system tcp and thread runtime is that during some Linux testing, there was a deadlock issue
-   with `tokio::net::TcpStream` + `tokio runtime`, causing tokio to not run. As this Linux is customized, we are currently
+   with `tokio::net::TcpStream` + `tokio runtime`, causing tokio to not run. As this Linux is customized, we are
+   currently
    unable to provide testable issues to Tokio. If you are using Windows, Windows Server 2012, macos, ubuntu, etc., this
    cargo crate is normal and you can use the default `tokio_tcp`
 

@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket"
-version = "0.5.2"
+version = "0.6.0"
 edition = "2021"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
@@ -33,7 +33,7 @@ tcp_runtime_tokio = ["cbsk_base/tokio_full"]
 # read write tcp data use std::thread_runtime
 tcp_runtime_thread = []
 # read write tcp data use rayon::spawn
-tcp_runtime_rayon = ["rayon"]
+tcp_runtime_rayon = ["rayon", "cbsk_base/once_cell"]
 tcp_server = []
 tcp_client = ["cbsk_base/macro"]
 ws_server = ["tokio-tungstenite", "cbsk_base/tokio_full", "futures-util", "cbsk_base/macro"]

@@ -10,3 +10,5 @@ pub mod data;
 pub mod tokio_runtime;
 #[cfg(feature = "tcp_runtime_thread")]
 pub mod thread_runtime;
+#[cfg(feature = "tcp_runtime_rayon")]
+pub mod rayon_runtime;

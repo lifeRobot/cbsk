@@ -64,6 +64,7 @@ pub trait SyncTcpTimeTrait: TcpTimeTrait {
             log::trace!("{} tcp read data[{buf:?}] of length {len}",self.get_log_head());
             // merge data and transfer to callback
             buf_tmp.append(&mut buf.to_vec());
+            self.wait_callback();
             buf_tmp = recv_callback(buf_tmp);
 
             // check capacity, to reduce memory fragmentation
@@ -72,6 +73,7 @@ pub trait SyncTcpTimeTrait: TcpTimeTrait {
                 new_buf_tmp.append(&mut buf_tmp);
                 buf_tmp = new_buf_tmp;
             }
+            self.finish_callback();
         }
     }
 }

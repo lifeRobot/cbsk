@@ -4,6 +4,7 @@ use std::net::{Shutdown, TcpStream};
 use std::sync::Arc;
 use cbsk_base::{anyhow, log};
 use cbsk_mut_data::mut_data_obj::MutDataObj;
+use rayon::ThreadPool;
 use crate::tcp::common::client::config::TcpClientConfig;
 use crate::tcp::common::client::sync::callback::TcpClientCallBack;
 use crate::tcp::common::sync::sync_tcp_time_trait::SyncTcpTimeTrait;
@@ -27,11 +28,15 @@ pub struct TcpClient<C: TcpClientCallBack> {
     /// the tcp last read timeout
     /// time see [fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<MutDataObj<i64>>,
+    /// rayon thread pool, default 2 threads
+    thread_pool: Arc<ThreadPool>,
     /// because it is not possible to know whether the thread has completed execution in Rayon,
     /// a property of whether it has been read has been added
     read_end: Arc<MutDataObj<bool>>,
     /// tcp client
     tcp_client: Arc<MutDataObj<Option<Arc<MutDataObj<TcpStream>>>>>,
+    /// is wait callback
+    wait_callback: Arc<MutDataObj<bool>>,
 }
 
 /// support clone
@@ -42,8 +47,10 @@ impl<C: TcpClientCallBack> Clone for TcpClient<C> {
             cb: self.cb.clone(),
             recv_time: self.recv_time.clone(),
             timeout_time: self.timeout_time.clone(),
+            thread_pool: self.thread_pool.clone(),
             read_end: self.read_end.clone(),
             tcp_client: self.tcp_client.clone(),
+            wait_callback: self.wait_callback.clone(),
         }
     }
 }
@@ -61,6 +68,12 @@ impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
     }
     fn get_timeout_time(&self) -> i64 {
         **self.timeout_time
+    }
+    fn set_wait_callback(&self, is_wait: bool) {
+        self.wait_callback.set(is_wait)
+    }
+    fn get_wait_callback(&self) -> bool {
+        **self.wait_callback
     }
 }
 
@@ -94,21 +107,28 @@ impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
     }
 }
 
-// TODO the following code is highly consistent with thread::TcpClient, it is recommended to package it
-
 /// data init etc
 impl<C: TcpClientCallBack> TcpClient<C> {
     /// create tcp client<br />
     /// just create data, if you want to read data to recv method, you should be call start method
-    pub fn new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Self {
-        Self {
+    pub fn try_new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Result<Self, rayon::ThreadPoolBuildError> {
+        Ok(Self {
             conf,
             cb,
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
+            thread_pool: Arc::new(rayon::ThreadPoolBuilder::new().num_threads(2).build()?),
             read_end: Arc::new(Default::default()),
             tcp_client: Arc::new(MutDataObj::default()),
-        }
+            wait_callback: Arc::new(Default::default()),
+        })
+    }
+
+    /// create tcp client<br />
+    /// just create data, if you want to read data to recv method, you should be call start method<br />
+    /// please use [Self::try_new]
+    pub fn new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Self {
+        Self::try_new(conf, cb).expect("create thread fail")
     }
 
     /// stop tcp server connect<br />
@@ -147,21 +167,10 @@ impl<C: TcpClientCallBack> TcpClient<C> {
 impl<C: TcpClientCallBack> TcpClient<C> {
     /// start tcp client<br />
     /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value<br />
-    /// the current method may not be safe, please use [self.try_start]
-    #[deprecated(note = "the current method may not be safe, please use try_start")]
+    /// please ensure that the main thread does not end, otherwise this TCP will automatically end, more see [ThreadPool::spawn]
     pub fn start<const N: usize>(&self) {
-        if let Err(e) = self.try_start::<N>() {
-            log::error!("failed to set the number of thread pools, the program may not run properly: {e:?}");
-        }
-    }
-
-    /// start tcp client<br />
-    /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value
-    pub fn try_start<const N: usize>(&self) -> Result<(), rayon::ThreadPoolBuildError> {
-        super::set_min_threads()?;
-
         let tcp_client = self.clone();
-        rayon::spawn(move || {
+        self.thread_pool.spawn(move || {
             loop {
                 tcp_client.conn::<N>();
 
@@ -169,7 +178,6 @@ impl<C: TcpClientCallBack> TcpClient<C> {
                 log::error!("{} tcp server disconnected, preparing for reconnection",tcp_client.conf.log_head);
             }
         });
-        Ok(())
     }
 
     /// connect tcp server and start read data
@@ -219,7 +227,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         self.set_now();
 
         let tcp_client = self.clone();
-        rayon::spawn(move || {
+        self.thread_pool.spawn(move || {
             tcp_client.read_end.set_false();
             let result = tcp_client.try_read_data::<N, _, _>(tcp_stream, tcp_client.conf.read_time_out, "server", || {
                 tcp_client.tcp_client.is_none()

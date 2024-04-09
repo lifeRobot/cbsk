@@ -31,6 +31,8 @@ pub struct TcpClient<C: TcpClientCallBack> {
     pub timeout_time: Arc<MutDataObj<i64>>,
     /// tcp client
     tcp_client: Arc<MutDataObj<Option<Arc<MutDataObj<TcpStream>>>>>,
+    /// is wait callback
+    wait_callback: Arc<MutDataObj<bool>>,
 }
 
 /// support clone
@@ -42,6 +44,7 @@ impl<C: TcpClientCallBack> Clone for TcpClient<C> {
             recv_time: self.recv_time.clone(),
             timeout_time: self.timeout_time.clone(),
             tcp_client: self.tcp_client.clone(),
+            wait_callback: self.wait_callback.clone(),
         }
     }
 }
@@ -76,6 +79,12 @@ impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
     fn get_timeout_time(&self) -> i64 {
         **self.timeout_time
     }
+    fn set_wait_callback(&self, is_wait: bool) {
+        self.wait_callback.set(is_wait)
+    }
+    fn get_wait_callback(&self) -> bool {
+        **self.wait_callback
+    }
 }
 
 /// support tcp time trait
@@ -99,6 +108,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
             tcp_client: Arc::new(MutDataObj::default()),
+            wait_callback: Arc::new(Default::default()),
         }
     }
 

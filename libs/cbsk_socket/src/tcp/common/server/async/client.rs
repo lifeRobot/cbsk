@@ -26,6 +26,8 @@ pub struct TcpServerClient {
     pub timeout_time: Arc<MutDataObj<i64>>,
     /// tcp client write
     pub write: Arc<MutDataObj<ClientWrite>>,
+    /// is wait callback
+    wait_callback: Arc<MutDataObj<bool>>,
 }
 
 /// custom method
@@ -39,6 +41,7 @@ impl TcpServerClient {
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
             write: MutDataObj::new(write).into(),
+            wait_callback: Arc::new(Default::default()),
         }
     }
 }
@@ -56,6 +59,12 @@ impl TcpTimeTrait for TcpServerClient {
     }
     fn get_timeout_time(&self) -> i64 {
         **self.timeout_time
+    }
+    fn set_wait_callback(&self, is_wait: bool) {
+        self.wait_callback.set(is_wait)
+    }
+    fn get_wait_callback(&self) -> bool {
+        **self.wait_callback
     }
 }
 
