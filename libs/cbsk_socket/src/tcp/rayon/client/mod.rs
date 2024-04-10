@@ -225,10 +225,10 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     /// read data handle
     fn try_read_spawn<const N: usize>(&self, tcp_stream: Arc<MutDataObj<TcpStream>>) {
         self.set_now();
+        self.read_end.set_false();
 
         let tcp_client = self.clone();
         self.thread_pool.spawn(move || {
-            tcp_client.read_end.set_false();
             let result = tcp_client.try_read_data::<N, _, _>(tcp_stream, tcp_client.conf.read_time_out, "server", || {
                 tcp_client.tcp_client.is_none()
             }, |bytes| {

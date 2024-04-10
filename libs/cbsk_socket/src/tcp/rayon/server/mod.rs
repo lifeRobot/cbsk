@@ -116,6 +116,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
     fn try_read_spawn<const N: usize>(&self, client: Arc<TcpServerClient>, read: Arc<MutDataObj<TcpStream>>) {
         if self.conf.log { log::info!("{} start tcp client read async success",client.log_head); }
         let tcp_server = self.clone();
+        client.read_end.set_false();
 
         client.clone().thread_pool.spawn(move || {
             let result = client.try_read_data::<N, _, _>(read, tcp_server.conf.read_time_out, "client", || {
@@ -127,6 +128,7 @@ impl<C: TcpServerCallBack> TcpServer<C> {
             if let Err(e) = result {
                 if tcp_server.conf.log { log::error!("{} read tcp client data error: {e:?}",client.log_head); }
             }
+            client.read_end.set_true();
         })
     }
 }
