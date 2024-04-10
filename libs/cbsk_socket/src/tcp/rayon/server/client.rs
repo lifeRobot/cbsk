@@ -24,7 +24,7 @@ pub struct TcpServerClient {
     /// because it is not possible to know whether the thread has completed execution in Rayon,
     /// a property of whether it has been read has been added
     pub(crate) read_end: Arc<MutDataObj<bool>>,
-    /// rayon thread pool, default 2 threads
+    /// rayon thread pool, default 4 threads
     pub(crate) thread_pool: Arc<ThreadPool>,
     /// tcp client write
     pub(crate) write: Arc<MutDataObj<TcpStream>>,
@@ -43,7 +43,7 @@ impl TcpServerClient {
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
             read_end: Arc::new(MutDataObj::default()),
-            thread_pool: Arc::new(rayon::ThreadPoolBuilder::new().num_threads(2).build()?),
+            thread_pool: Arc::new(rayon::ThreadPoolBuilder::new().num_threads(4).build()?),
             write,
             wait_callback: Arc::new(Default::default()),
         })

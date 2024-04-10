@@ -28,7 +28,7 @@ pub struct TcpClient<C: TcpClientCallBack> {
     /// the tcp last read timeout
     /// time see [fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<MutDataObj<i64>>,
-    /// rayon thread pool, default 2 threads
+    /// rayon thread pool, default 4 threads
     thread_pool: Arc<ThreadPool>,
     /// because it is not possible to know whether the thread has completed execution in Rayon,
     /// a property of whether it has been read has been added
@@ -117,7 +117,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
             cb,
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
-            thread_pool: Arc::new(rayon::ThreadPoolBuilder::new().num_threads(2).build()?),
+            thread_pool: Arc::new(rayon::ThreadPoolBuilder::new().num_threads(4).build()?),
             read_end: Arc::new(Default::default()),
             tcp_client: Arc::new(MutDataObj::default()),
             wait_callback: Arc::new(Default::default()),
