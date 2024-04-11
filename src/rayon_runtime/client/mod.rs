@@ -69,14 +69,14 @@ impl<C: CbskClientCallBack> CbskClient<C> {
 
     /// stop cbsk server connect<br />
     /// will shutdown tcp connection and will not new connection
-    pub async fn stop(&self) {
+    pub fn stop(&self) {
         self.tcp_client.stop();
     }
 
     /// notify tcp to re connect<br />
     /// will shutdown tcp connection, if [`TcpClientConfig`] reconn is disable<br />
     /// will shutdown and create new tcp connection,if [`TcpClientConfig`] reconn is enable
-    pub async fn re_conn(&self) {
+    pub fn re_conn(&self) {
         self.tcp_client.re_conn();
     }
 

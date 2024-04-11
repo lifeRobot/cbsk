@@ -209,7 +209,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         let tcp_stream = Arc::new(MutDataObj::new(tcp_stream));
         self.tcp_client.set(Some(tcp_stream.clone()));
 
-        log::info!("{} started tcp server read data async success",self.conf.log_head);
+        log::info!("{} started tcp server read data thread success",self.conf.log_head);
         self.cb.conn();
 
         // read data logic
@@ -219,7 +219,7 @@ impl<C: TcpClientCallBack> TcpClient<C> {
         // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
         self.shutdown();
         self.cb.dis_conn();
-        log::info!("{} tcp server read data async is shutdown",self.conf.log_head);
+        log::info!("{} tcp server read data thread is shutdown",self.conf.log_head);
     }
 
     /// read data handle
