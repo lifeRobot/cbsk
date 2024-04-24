@@ -1,4 +1,3 @@
-workspace = { members = ["libs/cbsk_s_rayon"] }
 [package]
 name = "cbsk"
 version = "1.0.0"
