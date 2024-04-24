@@ -7,7 +7,7 @@ macro_rules! match_some_return {
         $crate::match_some_return!($opt,())
     };
     ($opt:expr,$r:expr) => {
-        $crate::match_some_exec!($opt,{return $r});
+        $crate::match_some_exec!($opt,{return $r})
     };
 }
 

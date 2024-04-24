@@ -1,0 +1,25 @@
+[package]
+name = "cbsk_s_rayon"
+version = "1.0.0"
+edition = "2021"
+description = "cbsk_s_rayon is a socket callback tool"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures", "asynchronous"]
+keywords = ["socket", "tcp", "callback", "rayon"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_s_rayon"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+cbsk_base = { version = "0.1.8", features = ["log", "macro", "once_cell"] }
+cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["vec"] }
+cbsk_socket = { version = "1.0.0", default-features = false }
+rayon = "1.10.0"
+fastdate = "0.3.28"
+
+[features]
+default = ["tcp_client"]
+tcp_client = ["cbsk_socket/tcp_client"]
+tcp_server = ["cbsk_socket/tcp_server"]

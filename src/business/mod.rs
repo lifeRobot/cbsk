@@ -1,11 +1,11 @@
 use crate::data::analysis_data::AnalysisData;
 use crate::data::verify_data::VerifyData;
 
-#[cfg(any(feature = "system_tcp", feature = "tokio_tcp"))]
+#[cfg(any(feature = "client_tokio", feature = "server_tokio"))]
 pub mod cbsk_write_trait;
-#[cfg(any(feature = "tcp_runtime_thread", feature = "tcp_runtime_rayon"))]
+#[cfg(feature = "cbsk_s_rayon")]
 pub mod cbsk_write_trait_thread;
-#[cfg(any(feature = "tcp_runtime_thread", feature = "tcp_runtime_rayon"))]
+#[cfg(feature = "cbsk_s_rayon")]
 pub mod client_callback_thread;
 
 /// check verify data is too short

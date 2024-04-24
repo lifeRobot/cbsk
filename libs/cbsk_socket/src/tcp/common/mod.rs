@@ -2,7 +2,7 @@
 pub mod client;
 #[cfg(feature = "tcp_server")]
 pub mod server;
-#[cfg(feature = "tcp_runtime_tokio")]
+#[cfg(any(feature = "tokio_tcp", feature = "system_tcp"))]
 pub mod r#async;
 pub mod sync;
-pub(crate) mod tcp_time_trait;
+pub mod tcp_time_trait;

@@ -1,4 +1,4 @@
-#[cfg(feature = "client")]
+#[cfg(feature = "client_tokio")]
 pub mod client;
-#[cfg(feature = "server")]
+#[cfg(feature = "server_tokio")]
 pub mod server;

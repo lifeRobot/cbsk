@@ -1,6 +1,6 @@
 use std::sync::Arc;
 use cbsk_base::log;
-use crate::tcp::thread::server::client::TcpServerClient;
+use crate::server::client::TcpServerClient;
 
 /// tcp connect and read data callback
 pub trait TcpServerCallBack: Send + Sync + 'static {

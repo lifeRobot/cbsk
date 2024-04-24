@@ -1,6 +1,6 @@
 // pub use r#async::*;
 
 pub mod config;
-#[cfg(feature = "tcp_runtime_tokio")]
+#[cfg(any(feature = "tokio_tcp", feature = "system_tcp"))]
 pub mod r#async;
 pub mod sync;

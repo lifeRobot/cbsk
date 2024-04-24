@@ -1,7 +1,6 @@
 cbsk_socket is a socket callback tool  
 you can use cbsk_socket create TCP/WebSocket server or client, you don't need to focus on TCP/WebSocket read and write,
-just focus on
-business processing
+just focus on business processing
 
 ### minimum supported Rust version
 
@@ -24,7 +23,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.16"
 cbsk_base = { version = "0.1.8" }
-cbsk_socket = { version = "0.6.3", features = ["tcp_server"] }
+cbsk_socket = { version = "1.0.0", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -88,7 +87,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.16"
 cbsk_base = { version = "0.1.8" }
-cbsk_socket = { version = "0.6.3", features = ["tcp_client"] }
+cbsk_socket = { version = "1.0.0", features = ["tcp_client"] }
 ```
 
 main.rs file:
@@ -158,8 +157,6 @@ the following features are only valid for `tcp_server` or `tcp_client`
 1. default is `tokio_tcp`, use tokio runtime and tokio tcp
 2. `tokio_tcp`, use tokio runtime and tokio tcp
 3. `system_tcp`, use tokio runtime and system tcp
-4. `tcp_runtime_thread` use thread and system tcp
-5. `tcp_runtime_rayon` use rayon thread pool runtime and system tcp, more see [rayon](https://crates.io/crates/rayon)
 
 ### other issues
 

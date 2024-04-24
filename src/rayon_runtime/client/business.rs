@@ -1,22 +1,22 @@
 use std::sync::Arc;
-use cbsk_socket::tcp::common::client::sync::callback::TcpClientCallBack;
+use cbsk_s_rayon::client::callback::TcpClientCallBack;
 use crate::{business, data};
 use crate::business::client_callback_thread::CbskClientCallBack;
 
 /// support tcp client callback
-pub struct CbskClientBusiness<C: CbskClientCallBack> {
+pub struct CbskClientBusines<C: CbskClientCallBack> {
     /// the cbsk first frame<br />
     /// Used to determine if it is cbsk data
-    pub header: Vec<u8>,
+    pub header: Arc<Vec<u8>>,
     /// business callback
     pub cb: Arc<C>,
 }
 
 /// custom method
-impl<C: CbskClientCallBack> CbskClientBusiness<C> {
+impl<C: CbskClientCallBack> CbskClientBusines<C> {
     /// new business
     pub fn new(cb: Arc<C>) -> Self {
-        Self { cb, header: data::default_header() }
+        Self { cb, header: data::default_header().into() }
     }
 
     /// new business, custom header frame
@@ -25,12 +25,12 @@ impl<C: CbskClientCallBack> CbskClientBusiness<C> {
         if header.is_empty() {
             header = data::default_header()
         }
-        Self { cb, header }
+        Self { cb, header: header.into() }
     }
 }
 
 /// support tcp client callback
-impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusiness<C> {
+impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusines<C> {
     fn conn(&self) {
         self.cb.conn();
     }

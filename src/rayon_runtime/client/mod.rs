@@ -1,53 +1,61 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
+use cbsk_s_rayon::client::TcpClient;
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::common::client::config::TcpClientConfig;
 use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
-use cbsk_socket::tcp::rayon::client::TcpClient;
 use crate::business::cbsk_write_trait_thread::CbskWriteTrait;
 use crate::business::client_callback_thread::CbskClientCallBack;
-use crate::rayon_runtime::client::business::CbskClientBusiness;
+use crate::rayon_runtime::client::business::CbskClientBusines;
 
 pub mod business;
 
 
 /// cbsk client
-pub struct CbskClient<C: CbskClientCallBack> {
+pub struct CbskClient {
     /// tcp client
-    tcp_client: Arc<TcpClient<business::CbskClientBusiness<C>>>,
+    tcp_client: Arc<TcpClient>,
+    /// cbsk header
+    pub header: Arc<Vec<u8>>,
 }
 
 /// custom method
-impl<C: CbskClientCallBack> CbskClient<C> {
-    /// new cbsk client<br />
+impl CbskClient {
+    /// new cbsk client<br /><br />
+    /// buf_len is tcp read data once lengle
     /// if the tcp connection is disconnected, it will reconnect after 3 seconds
-    pub fn new(cb: Arc<C>, addr: SocketAddr) -> Self {
-        Self::new_with_tcp_config(cb, Self::default_tcp_config(addr).into())
+    pub fn new<C: CbskClientCallBack>(cb: Arc<C>, addr: SocketAddr, buf_len: usize) -> Self {
+        Self::new_with_tcp_config(cb, Self::default_tcp_config(addr).into(), buf_len)
     }
 
-    /// use tcp client config create cbsk client
-    pub fn new_with_tcp_config(cb: Arc<C>, conf: Arc<TcpClientConfig>) -> Self {
-        let cbsk_cb = business::CbskClientBusiness::new(cb);
-        Self::new_with_business(cbsk_cb, conf)
+    /// use tcp client config create cbsk client<br />
+    /// buf_len is tcp read data once lengle
+    pub fn new_with_tcp_config<C: CbskClientCallBack>(cb: Arc<C>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
+        let cbsk_cb = business::CbskClientBusines::new(cb);
+        Self::new_with_business(cbsk_cb, conf, buf_len)
     }
 
-    /// custom header create cbsk client
-    pub fn new_with_header(cb: Arc<C>, addr: SocketAddr, header: Vec<u8>) -> Self {
-        let cbsk_cb = business::CbskClientBusiness::new_with_head(cb, header);
-        Self::new_with_business(cbsk_cb, Self::default_tcp_config(addr).into())
+    /// custom header create cbsk client<br />
+    /// buf_len is tcp read data once lengle
+    pub fn new_with_header<C: CbskClientCallBack>(cb: Arc<C>, addr: SocketAddr, header: Vec<u8>, buf_len: usize) -> Self {
+        let cbsk_cb = business::CbskClientBusines::new_with_head(cb, header);
+        Self::new_with_business(cbsk_cb, Self::default_tcp_config(addr).into(), buf_len)
     }
 
-    /// htc is an abbreviation for header_tcp_config
-    pub fn new_with_htc(cb: Arc<C>, header: Vec<u8>, conf: Arc<TcpClientConfig>) -> Self {
-        let cbsk_cb = business::CbskClientBusiness::new_with_head(cb, header);
-        Self::new_with_business(cbsk_cb, conf)
+    /// htc is an abbreviation for header_tcp_config<br />
+    /// buf_len is tcp read data once lengle
+    pub fn new_with_htc<C: CbskClientCallBack>(cb: Arc<C>, header: Vec<u8>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
+        let cbsk_cb = business::CbskClientBusines::new_with_head(cb, header);
+        Self::new_with_business(cbsk_cb, conf, buf_len)
     }
 
-    /// use business create cbsk client
-    fn new_with_business(cb: CbskClientBusiness<C>, conf: Arc<TcpClientConfig>) -> Self {
-        let tcp_client = TcpClient::new(conf, cb.into()).into();
-        Self { tcp_client }
+    /// use business create cbsk client<br />
+    /// buf_len is tcp read data once lengle
+    fn new_with_business<C: CbskClientCallBack>(cb: CbskClientBusines<C>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
+        let header = cb.header.clone();
+        let tcp_client = TcpClient::new_with_buf_len(conf.clone(), buf_len, cb).into();
+        Self { tcp_client, header }
     }
 
     /// get default tcp config
@@ -56,10 +64,8 @@ impl<C: CbskClientCallBack> CbskClient<C> {
     }
 
     /// start cbsk client
-    /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value<br />
-    /// /// please ensure that the main thread does not end, otherwise this TCP will automatically end, more see [TcpClient::start]
-    pub fn start<const N: usize>(&self) {
-        self.tcp_client.start::<N>()
+    pub fn start(&self) {
+        self.tcp_client.start()
     }
 
     /// get has the cbsk server connection been success
@@ -89,21 +95,16 @@ impl<C: CbskClientCallBack> CbskClient<C> {
     pub fn get_config(&self) -> Arc<TcpClientConfig> {
         self.tcp_client.conf.clone()
     }
-
-    /// get callback
-    pub fn get_callback(&self) -> Arc<CbskClientBusiness<C>> {
-        self.tcp_client.cb.clone()
-    }
 }
 
 /// support write data to cbsk
-impl<C: CbskClientCallBack> CbskWriteTrait for CbskClient<C> {
+impl CbskWriteTrait for CbskClient {
     fn get_log_head(&self) -> &str {
         self.tcp_client.get_log_head()
     }
 
     fn try_send_bytes(&self, bytes: Vec<u8>) -> cbsk_base::anyhow::Result<()> {
-        let frame = crate::business::frame(bytes, self.tcp_client.cb.header.as_ref());
+        let frame = crate::business::frame(bytes, self.header.as_ref());
         self.tcp_client.try_send_bytes(frame.as_slice())
     }
 }

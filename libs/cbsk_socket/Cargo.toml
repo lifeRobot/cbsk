@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket"
-version = "0.6.3"
+version = "1.0.0"
 edition = "2021"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
@@ -14,9 +14,8 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket"
 
 [dependencies]
 cbsk_base = { version = "0.1.8", features = ["serde_derive_json", "anyhow", "log"] }
-cbsk_mut_data = { version = "0.1.4", default-features = false, features = ["obj"] }
+cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["obj"] }
 fastdate = "0.3.28"
-rayon = { version = "1.10.0", optional = true }
 
 # ws crates
 tokio-tungstenite = { version = "0.21.0", optional = true }
@@ -26,14 +25,8 @@ futures-util = { version = "0.3.30", default-features = false, optional = true }
 # default use tokio_runtime tcp and tokio_runtime runtime
 default = ["tokio_tcp"]
 # the tcp use tokio_runtime tcp or system tcp, default is system tcp
-tokio_tcp = ["tcp_runtime_tokio"]
-system_tcp = ["tcp_runtime_tokio"]
-# read write tcp data use tokio_runtime runtime
-tcp_runtime_tokio = ["cbsk_base/tokio_full"]
-# read write tcp data use std::thread_runtime
-tcp_runtime_thread = []
-# read write tcp data use rayon::spawn
-tcp_runtime_rayon = ["rayon", "cbsk_base/once_cell"]
+tokio_tcp = ["cbsk_base/tokio_full"]
+system_tcp = ["cbsk_base/tokio_full"]
 tcp_server = []
 tcp_client = ["cbsk_base/macro"]
 ws_server = ["tokio-tungstenite", "cbsk_base/tokio_full", "futures-util", "cbsk_base/macro"]

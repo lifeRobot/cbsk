@@ -11,6 +11,16 @@ pub struct MutDataVec<T> {
 
 /// custom method
 impl<T> MutDataVec<T> {
+    /// new mut data vec, more see [Vec::new]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// always use the capacity method after construction, more see [Vec::with_capacity]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self { data: MutDataObj::new(Vec::with_capacity(capacity)) }
+    }
+
     /// push data
     pub fn push(&self, t: T) {
         self.as_mut().push(t);
@@ -66,6 +76,13 @@ impl<T> MutDataVec<T> {
     /// ```
     pub fn iter_mut(&self) -> IntoIter<MutDataRef<T>> {
         self.as_mut().iter_mut().map(MutDataRef::new_ref).collect::<Vec<MutDataRef<T>>>().into_iter()
+    }
+}
+
+/// support Vec into MutDataVec
+impl<T> From<Vec<T>> for MutDataVec<T> {
+    fn from(value: Vec<T>) -> Self {
+        Self { data: MutDataObj::new(value) }
     }
 }
 

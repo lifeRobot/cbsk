@@ -23,7 +23,7 @@ Cargo.toml:
 
 ```toml
 cbsk_base = { version = "0.1.8", default-features = false, features = ["once_cell"] }
-cbsk = { version = "0.4.3", features = ["server"] }
+cbsk = { version = "1.0.0", features = ["server_tokio"] }
 ```
 
 main.rs:
@@ -89,16 +89,8 @@ impl CbskClientCallBack for CbskClientBusiness {
 
 ### features explain
 
-1. default is `client` and `tokio_tcp`
-2. `system_tcp`, use system tcp and tokio runtime
-3. `tokio_tcp`, use tokio tcp and tokio runtime
-4. `tcp_runtime_thread`, use system tcp and system thread runtime
-5. `tcp_runtime_rayon` use rayon thread pool runtime and system tcp, more see [rayon](https://crates.io/crates/rayon)
-
-### other issues
-
-1. The reason for adding system tcp and thread runtime is that during some Linux testing, there was a deadlock issue
-   with `tokio::net::TcpStream` + `tokio runtime`, causing tokio to not run. As this Linux is customized, we are
-   currently
-   unable to provide testable issues to Tokio. If you are using Windows, Windows Server 2012, macos, ubuntu, etc., this
-   cargo crate is normal and you can use the default `tokio_tcp`
+1. default is `client` and `client_tokio`
+2. `client_rayon`, tcp client by rayon thread runtime
+3. `server_rayon`, tcp server by rayon thread runtime
+4. `client_tokio`, tcp client by tokio runtime
+5. `server_tokio`, tcp server by tokio runtime
