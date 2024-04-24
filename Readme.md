@@ -23,7 +23,7 @@ Cargo.toml:
 
 ```toml
 cbsk_base = { version = "0.1.8", default-features = false, features = ["once_cell"] }
-cbsk = { version = "1.0.0", features = ["server_tokio"] }
+cbsk = { version = "1.0.1", features = ["server_tokio"] }
 ```
 
 main.rs:
@@ -45,14 +45,14 @@ use cbsk_base::once_cell::sync::Lazy;
 static addr: Lazy<SocketAddr> = Lazy::new(|| { SocketAddr::new(IpAddr::from([127, 0, 0, 1]), 8080) });
 
 #[allow(non_upper_case_globals)]
-static cbsk_client: Lazy<CbskClient<CbskClientBusiness>> = Lazy::new(|| { CbskClient::new(CbskClientBusiness {}.into(), *addr) });
+static cbsk_client: Lazy<CbskClient<CbskClientBusiness>> = Lazy::new(|| { CbskClient::new(CbskClientBusiness {}.into(), *addr, 1024) });
 
 #[tokio::main]
 async fn main() {
-    let cbsk_server = CbskServer::new(CbskServerBusiness {}.into(), *addr);
+    let cbsk_server = CbskServer::new(CbskServerBusiness {}.into(), *addr, 1024);
 
     // start cbsk and wait stop
-    for handle in [cbsk_server.start::<1024>(), cbsk_client.start::<1024>()] {
+    for handle in [cbsk_server.start(), cbsk_client.start()] {
         handle.await.unwrap()
     }
 }

@@ -14,8 +14,8 @@ repository = "https://github.com/lifeRobot/cbsk"
 
 [dependencies]
 cbsk_base = { version = "0.1.8", default-features = false, features = ["macro"] }
-cbsk_socket = { version = "1.0.0", default-features = false }
-cbsk_s_rayon = { version = "1.0.0", optional = true, default-features = false }
+cbsk_socket = { version = "1.0.1", default-features = false }
+cbsk_s_rayon = { version = "1.0.1", optional = true, default-features = false }
 
 [features]
 default = ["client_tokio"]

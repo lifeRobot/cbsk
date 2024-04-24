@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket"
-version = "1.0.0"
+version = "1.0.1"
 edition = "2021"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
@@ -27,7 +27,7 @@ default = ["tokio_tcp"]
 # the tcp use tokio_runtime tcp or system tcp, default is system tcp
 tokio_tcp = ["cbsk_base/tokio_full"]
 system_tcp = ["cbsk_base/tokio_full"]
-tcp_server = []
-tcp_client = ["cbsk_base/macro"]
+tcp_server = ["cbsk_base/async-trait"]
+tcp_client = ["cbsk_base/macro", "cbsk_base/async-trait"]
 ws_server = ["tokio-tungstenite", "cbsk_base/tokio_full", "futures-util", "cbsk_base/macro"]
 ws_client = ["tokio-tungstenite", "cbsk_base/tokio_full", "futures-util", "cbsk_base/macro"]

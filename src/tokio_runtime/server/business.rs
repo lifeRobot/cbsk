@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use cbsk_base::async_trait::async_trait;
 use cbsk_socket::tcp::common::server::r#async::callback::TcpServerCallBack;
 use cbsk_socket::tcp::common::server::r#async::client::TcpServerClient;
 use crate::{business, data};
@@ -32,6 +33,7 @@ impl<C: CbskServerCallBack> CbskServerBusines<C> {
 }
 
 /// support tcp server callback
+#[async_trait]
 impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
     async fn conn(&self, client: Arc<TcpServerClient>) {
         self.cb.conn(CbskServerClient::new(self.header.clone(), client).into()).await;

@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use cbsk_base::async_trait::async_trait;
 use cbsk_socket::tcp::client::callback::TcpClientCallBack;
 use crate::{business, data};
 use crate::client::callback::CbskClientCallBack;
@@ -7,7 +8,7 @@ use crate::client::callback::CbskClientCallBack;
 pub struct CbskClientBusiness<C: CbskClientCallBack> {
     /// the cbsk first frame<br />
     /// Used to determine if it is cbsk data
-    pub header: Vec<u8>,
+    pub header: Arc<Vec<u8>>,
     /// business callback
     pub cb: Arc<C>,
 }
@@ -16,7 +17,7 @@ pub struct CbskClientBusiness<C: CbskClientCallBack> {
 impl<C: CbskClientCallBack> CbskClientBusiness<C> {
     /// new business
     pub fn new(cb: Arc<C>) -> Self {
-        Self { cb, header: data::default_header() }
+        Self { cb, header: data::default_header().into() }
     }
 
     /// new business, custom header frame
@@ -25,11 +26,12 @@ impl<C: CbskClientCallBack> CbskClientBusiness<C> {
         if header.is_empty() {
             header = data::default_header()
         }
-        Self { cb, header }
+        Self { cb, header: header.into() }
     }
 }
 
 /// support tcp client callback
+#[async_trait]
 impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusiness<C> {
     async fn conn(&self) {
         self.cb.conn().await;

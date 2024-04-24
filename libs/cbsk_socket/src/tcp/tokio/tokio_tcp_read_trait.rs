@@ -9,18 +9,18 @@ use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
 /// cbsk socket tcp read trait
 pub trait TokioTcpReadTrait: AsyncTcpTimeTrait {
     /// read data
-    async fn try_read_data_tokio<const N: usize, TO, R, O>
-    (&self, mut read: OwnedReadHalf, read_time_out: Duration, msg: &'static str, timeout_fn: TO, recv_callback: R)
+    async fn try_read_data_tokio<TO, R, O>
+    (&self, mut read: OwnedReadHalf, buf_len: usize, read_time_out: Duration, msg: &'static str, timeout_fn: TO, recv_callback: R)
      -> anyhow::Result<()>
         where TO: Fn() -> bool, R: Fn(Vec<u8>) -> O, O: Future<Output=Vec<u8>> {
         // start read data success, set recv_time and timeout_time once
         self.set_now();
 
-        let mut buf = [0; N];
-        let mut buf_tmp = Vec::with_capacity(N);
+        let mut buf = vec![0; buf_len];
+        let mut buf_tmp = Vec::with_capacity(buf_len);
 
         loop {
-            let read = read.read(&mut buf);
+            let read = read.read(buf.as_mut_slice());
             let len =
                 // the timeout of tokio_runtime may be an issue, which may cause the CPU to idle. It needs to be fixed here
                 match tokio::time::timeout(read_time_out, read).await {
@@ -77,8 +77,8 @@ pub trait TokioTcpReadTrait: AsyncTcpTimeTrait {
             buf_tmp = recv_callback(buf_tmp).await;
 
             // check capacity, to reduce memory fragmentation
-            if buf_tmp.capacity() < N {
-                let mut new_buf_tmp = Vec::with_capacity(N);
+            if buf_tmp.capacity() < buf_len {
+                let mut new_buf_tmp = Vec::with_capacity(buf_len);
                 new_buf_tmp.append(&mut buf_tmp);
                 buf_tmp = new_buf_tmp;
             }

@@ -23,7 +23,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.6.16"
 cbsk_base = { version = "0.1.8" }
-cbsk_socket = { version = "1.0.0", features = ["tcp_server"] }
+cbsk_socket = { version = "1.0.1", features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -86,8 +86,8 @@ Cargo.toml file:
 
 ```toml
 fast_log = "1.6.16"
-cbsk_base = { version = "0.1.8" }
-cbsk_socket = { version = "1.0.0", features = ["tcp_client"] }
+cbsk_base = { version = "0.1.8", features = ["async-trait"] }
+cbsk_socket = { version = "1.0.1", features = ["tcp_client"] }
 ```
 
 main.rs file:
@@ -95,6 +95,7 @@ main.rs file:
 ```rust
 use std::net::{IpAddr, SocketAddr};
 use std::time::Duration;
+use cbsk_base::async_trait::async_trait;
 use cbsk_base::{log, tokio};
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::client::callback::TcpClientCallBack;
@@ -139,6 +140,7 @@ async fn main() {
 pub struct TcpClientBusiness {}
 
 /// business callback
+#[async_trait]
 impl TcpClientCallBack for TcpClientBusiness {
     async fn recv(&self, bytes: Vec<u8>) -> Vec<u8> {
         println!("read bytes [{bytes:?}]");

@@ -15,11 +15,12 @@ use crate::tcp::common::tcp_time_trait::TcpTimeTrait;
 use crate::tcp::tokio::tokio_tcp_read_trait::TokioTcpReadTrait;
 
 /// tcp client
-pub struct TcpClient<C: TcpClientCallBack> {
+#[derive(Clone)]
+pub struct TcpClient {
     /// tcp client config
     pub conf: Arc<TcpClientConfig>,
     /// tcp client business callback
-    pub cb: Arc<C>,
+    pub cb: Arc<Box<dyn TcpClientCallBack>>,
     /// the last time the data was received<br />
     /// Because some Linux systems have network disconnections,
     /// but the system still considers TCP connections to be normal,
@@ -35,24 +36,12 @@ pub struct TcpClient<C: TcpClientCallBack> {
     write: Arc<MutDataObj<Option<MutDataObj<OwnedWriteHalf>>>>,
     /// is wait callback
     wait_callback: Arc<MutDataObj<bool>>,
-}
-
-/// support clone
-impl<C: TcpClientCallBack> Clone for TcpClient<C> {
-    fn clone(&self) -> Self {
-        Self {
-            conf: self.conf.clone(),
-            cb: self.cb.clone(),
-            recv_time: self.recv_time.clone(),
-            timeout_time: self.timeout_time.clone(),
-            write: self.write.clone(),
-            wait_callback: self.wait_callback.clone(),
-        }
-    }
+    /// tcp read data len
+    buf_len: usize,
 }
 
 /// support writer trait
-impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
+impl TcpWriteTrait for TcpClient {
     fn get_log_head(&self) -> &str {
         self.conf.log_head.as_str()
     }
@@ -68,10 +57,10 @@ impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
 }
 
 /// support tcp client read trait
-impl<C: TcpClientCallBack> TokioTcpReadTrait for TcpClient<C> {}
+impl TokioTcpReadTrait for TcpClient {}
 
 ///  support tcp time trait
-impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
+impl TcpTimeTrait for TcpClient {
     fn set_recv_time(&self, time: i64) {
         self.recv_time.set(time)
     }
@@ -93,24 +82,29 @@ impl<C: TcpClientCallBack> TcpTimeTrait for TcpClient<C> {
 }
 
 /// support tcp time trait
-impl<C: TcpClientCallBack> AsyncTcpTimeTrait for TcpClient<C> {
+impl AsyncTcpTimeTrait for TcpClient {
     fn get_log_head(&self) -> &str {
         self.conf.log_head.as_str()
     }
 }
 
 /// data init etc
-impl<C: TcpClientCallBack> TcpClient<C> {
+impl TcpClient {
     /// create tcp client<br />
     /// just create data, if you want to read data to recv method, you should be call start method
-    pub fn new(conf: Arc<TcpClientConfig>, cb: Arc<C>) -> Self {
+    pub fn new<C: TcpClientCallBack>(conf: Arc<TcpClientConfig>, cb: C) -> Self {
+        Self::new_with_buf_len(conf, 1024, cb)
+    }
+
+    pub fn new_with_buf_len<C: TcpClientCallBack>(conf: Arc<TcpClientConfig>, buf_len: usize, cb: C) -> Self {
         Self {
             conf,
-            cb,
+            cb: Arc::new(Box::new(cb)),
             recv_time: MutDataObj::new(Self::now()).into(),
             timeout_time: MutDataObj::new(Self::now()).into(),
             write: Arc::new(MutDataObj::default()),
             wait_callback: Arc::new(Default::default()),
+            buf_len,
         }
     }
 
@@ -147,15 +141,15 @@ impl<C: TcpClientCallBack> TcpClient<C> {
 }
 
 /// tcp read logic
-impl<C: TcpClientCallBack> TcpClient<C> {
+impl TcpClient {
     /// start tcp client<br />
     /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value
-    pub fn start<const N: usize>(&self) -> JoinHandle<()> {
+    pub fn start(&self) -> JoinHandle<()> {
         let tcp_client = self.clone();
         tokio::spawn(async move {
             // there are two loops here, so it should be possible to optimize them
             loop {
-                tcp_client.conn::<N>().await;
+                tcp_client.conn().await;
 
                 if !tcp_client.conf.reconn.enable { break; }
                 log::error!("{} tcp server disconnected, preparing for reconnection",tcp_client.conf.log_head);
@@ -166,14 +160,14 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     }
 
     /// connect tcp server and start read data
-    async fn conn<const N: usize>(&self) {
+    async fn conn(&self) {
         let mut re_num = 0;
         loop {
             re_num += 1;
             let err =
                 match self.try_conn().await {
                     Ok(tcp_stream) => {
-                        self.read_spawn::<N>(tcp_stream).await;
+                        self.read_spawn(tcp_stream).await;
                         return;
                     }
                     Err(e) => e,
@@ -190,14 +184,14 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     }
 
     /// read tcp server data
-    async fn read_spawn<const N: usize>(&self, tcp_stream: TcpStream) {
+    async fn read_spawn(&self, tcp_stream: TcpStream) {
         let (read, write) = tcp_stream.into_split();
         self.write.set_some(MutDataObj::new(write).into());
 
         log::info!("{} started tcp server read data async success",self.conf.log_head);
         self.cb.conn().await;
 
-        let read_handle = self.try_read_spawn::<N>(read);
+        let read_handle = self.try_read_spawn(read);
         self.wait_read_handle_finished(read_handle, self.conf.read_time_out, || async {}).await;
 
         // tcp read disabled, directly assume that tcp has been closed, simultaneously close read
@@ -207,14 +201,14 @@ impl<C: TcpClientCallBack> TcpClient<C> {
     }
 
     /// read data handle
-    fn try_read_spawn<const N: usize>(&self, read: OwnedReadHalf) -> JoinHandle<()> {
+    fn try_read_spawn(&self, read: OwnedReadHalf) -> JoinHandle<()> {
         // start read headle, set recvtime and timeouttime is now
         self.set_now();
 
         let tcp_client = self.clone();
         tokio::spawn(async move {
             let result =
-                tcp_client.try_read_data_tokio::<N, _, _, _>(read, tcp_client.conf.read_time_out, "server", || {
+                tcp_client.try_read_data_tokio(read, tcp_client.buf_len, tcp_client.conf.read_time_out, "server", || {
                     tcp_client.write.is_none()
                 }, |data| async {
                     tcp_client.cb.recv(data).await

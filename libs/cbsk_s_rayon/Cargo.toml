@@ -15,7 +15,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_s_rayon"
 [dependencies]
 cbsk_base = { version = "0.1.8", features = ["log", "macro", "once_cell"] }
 cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["vec"] }
-cbsk_socket = { version = "1.0.0", default-features = false }
+cbsk_socket = { version = "1.0.1", default-features = false }
 rayon = "1.10.0"
 fastdate = "0.3.28"
 

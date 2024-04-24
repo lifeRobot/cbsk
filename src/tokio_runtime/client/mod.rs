@@ -14,41 +14,44 @@ pub mod callback;
 mod business;
 
 /// cbsk client
-pub struct CbskClient<C: CbskClientCallBack> {
+pub struct CbskClient {
     /// tcp client
-    tcp_client: Arc<TcpClient<business::CbskClientBusiness<C>>>,
+    tcp_client: Arc<TcpClient>,
+    /// cbsk header
+    pub header: Arc<Vec<u8>>,
 }
 
 /// custom method
-impl<C: CbskClientCallBack> CbskClient<C> {
+impl CbskClient {
     /// new cbsk client<br />
     /// if the tcp connection is disconnected, it will reconnect after 3 seconds
-    pub fn new(cb: Arc<C>, addr: SocketAddr) -> Self {
-        Self::new_with_tcp_config(cb, Self::default_tcp_config(addr).into())
+    pub fn new<C: CbskClientCallBack>(cb: Arc<C>, addr: SocketAddr, buf_len: usize) -> Self {
+        Self::new_with_tcp_config(cb, Self::default_tcp_config(addr).into(), buf_len)
     }
 
     /// use tcp client config create cbsk client
-    pub fn new_with_tcp_config(cb: Arc<C>, conf: Arc<TcpClientConfig>) -> Self {
+    pub fn new_with_tcp_config<C: CbskClientCallBack>(cb: Arc<C>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
         let cbsk_cb = business::CbskClientBusiness::new(cb);
-        Self::new_with_business(cbsk_cb, conf)
+        Self::new_with_business(cbsk_cb, conf, buf_len)
     }
 
     /// custom header create cbsk client
-    pub fn new_with_header(cb: Arc<C>, addr: SocketAddr, header: Vec<u8>) -> Self {
+    pub fn new_with_header<C: CbskClientCallBack>(cb: Arc<C>, addr: SocketAddr, header: Vec<u8>, buf_len: usize) -> Self {
         let cbsk_cb = business::CbskClientBusiness::new_with_head(cb, header);
-        Self::new_with_business(cbsk_cb, Self::default_tcp_config(addr).into())
+        Self::new_with_business(cbsk_cb, Self::default_tcp_config(addr).into(), buf_len)
     }
 
     /// htc is an abbreviation for header_tcp_config
-    pub fn new_with_htc(cb: Arc<C>, header: Vec<u8>, conf: Arc<TcpClientConfig>) -> Self {
+    pub fn new_with_htc<C: CbskClientCallBack>(cb: Arc<C>, header: Vec<u8>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
         let cbsk_cb = business::CbskClientBusiness::new_with_head(cb, header);
-        Self::new_with_business(cbsk_cb, conf)
+        Self::new_with_business(cbsk_cb, conf, buf_len)
     }
 
     /// use business create cbsk client
-    fn new_with_business(cb: CbskClientBusiness<C>, conf: Arc<TcpClientConfig>) -> Self {
-        let tcp_client = TcpClient::new(conf, cb.into()).into();
-        Self { tcp_client }
+    fn new_with_business<C: CbskClientCallBack>(cb: CbskClientBusiness<C>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
+        let header = cb.header.clone();
+        let tcp_client = TcpClient::new_with_buf_len(conf, buf_len, cb).into();
+        Self { tcp_client, header }
     }
 
     /// get default tcp config
@@ -58,8 +61,8 @@ impl<C: CbskClientCallBack> CbskClient<C> {
 
     /// start cbsk client
     /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value
-    pub fn start<const N: usize>(&self) -> JoinHandle<()> {
-        self.tcp_client.start::<N>()
+    pub fn start(&self) -> JoinHandle<()> {
+        self.tcp_client.start()
     }
 
     /// get has the cbsk server connection been success
@@ -95,21 +98,16 @@ impl<C: CbskClientCallBack> CbskClient<C> {
     pub fn get_config(&self) -> Arc<TcpClientConfig> {
         self.tcp_client.conf.clone()
     }
-
-    /// get callback
-    pub fn get_callback(&self) -> Arc<CbskClientBusiness<C>> {
-        self.tcp_client.cb.clone()
-    }
 }
 
 /// support write data to cbsk
-impl<C: CbskClientCallBack> CbskWriteTrait for CbskClient<C> {
+impl CbskWriteTrait for CbskClient {
     fn get_log_head(&self) -> &str {
         self.tcp_client.get_log_head()
     }
 
     async fn try_send_bytes(&self, bytes: Vec<u8>) -> cbsk_base::anyhow::Result<()> {
-        let frame = crate::business::frame(bytes, self.tcp_client.cb.header.as_ref());
+        let frame = crate::business::frame(bytes, self.header.as_ref());
         self.tcp_client.try_send_bytes(frame.as_slice()).await
     }
 }
