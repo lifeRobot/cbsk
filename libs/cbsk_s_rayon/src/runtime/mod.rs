@@ -139,7 +139,7 @@ impl Runtime {
         #[cfg(feature = "debug_mode")]
         for (i, pool) in self.pool.iter_mut().enumerate() {
             if pool.1 < 10 {
-                log::info!("pool i[{i}], j[{}]",pool.1);
+                log::trace!("pool i[{i}], j[{}]",pool.1);
                 return Ok(pool);
             }
         }

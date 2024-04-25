@@ -108,6 +108,8 @@ impl TcpServerClient {
                 log::error!("shutdown tcp error: {e:?}");
             }
         }
+        #[cfg(feature = "debug_mode")]
+        log::warn!("client [{}] is shutdown",self.addr);
         self.connecting.set_false();
     }
 
@@ -118,6 +120,8 @@ impl TcpServerClient {
             if self.conf.log {
                 log::error!("{} tcp client read data error: {e:?}",self.log_head);
             }
+            #[cfg(feature = "debug_mode")]
+            log::warn!("read err");
             self.shutdown();
             self.cb.dis_conn(tc);
         }
@@ -126,6 +130,8 @@ impl TcpServerClient {
 
     /// try read data from tcp client
     fn try_read(&self, tc: Arc<Self>) -> anyhow::Result<()> {
+        #[cfg(feature = "debug_mode")]
+        log::info!("try read");
         self.set_now();
         let mut ts = self.tcp_client.as_mut();
         let len =
@@ -174,7 +180,15 @@ impl TcpServerClient {
         let recv_diff = now - self.get_recv_time();
 
         if !self.get_wait_callback() && timeout_diff > check_time_out && recv_diff > check_time_out {
+            #[cfg(feature = "debug_mode")] {
+                log::info!("timeout_diff is {timeout_diff}");
+                log::info!("recv_diff is {recv_diff}");
+                log::info!("check_time_out is {check_time_out}");
+            }
+
             // tcp read timeout, directly assuming that tcp has been disconnected
+            #[cfg(feature = "debug_mode")]
+            log::warn!("neet abort");
             self.shutdown();
             self.cb.dis_conn(tc);
         }

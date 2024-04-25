@@ -66,12 +66,15 @@ impl TcpServer {
         let tl = cbsk_base::match_some_exec!(self.listener.as_ref().as_ref(),{
             let tl = TcpListener::bind(self.conf.addr)?;
             self.listener.set(Some(tl));
+            log::info!("{} listener [{}] success",self.conf.log_head,self.conf.addr);
             self.listener.as_ref().as_ref().as_ref().ok_or_else(||{anyhow::anyhow!("get listener fail")})?
         });
 
         self.listening.set_true();
-        log::info!("{} listener [{}] success",self.conf.log_head,self.conf.addr);
         let (ts, addr) = tl.accept()?;
+        if let Err(e) = ts.set_read_timeout(Some(self.conf.read_time_out)) {
+            log::error!("set read time out fail: {e:?}");
+        }
         let tc = Arc::new(TcpServerClient::new(addr, self, MutDataObj::new(ts).into()));
         runtime.tcp_server_client.push(tc.clone());
         self.cb.conn(tc);
