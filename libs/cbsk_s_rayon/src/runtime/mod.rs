@@ -27,11 +27,13 @@ macro_rules! get_pool {
     () => {
         match runtime.try_get_pool() {
             Ok(pool) => {
-                runtime.first_err.set_true();
+                if **runtime.get_pool_log {
+                    runtime.first_err.set_true();
+                }
                 pool
             }
             Err(e) => {
-                if **runtime.first_err {
+                if **runtime.get_pool_log && **runtime.first_err{
                     runtime.first_err.set_false();
                     log::error!("try get pool fail: {e:?}");
                 }
@@ -65,6 +67,8 @@ pub(crate) struct Runtime {
     thread_pool_num: Arc<MutDataObj<u8>>,
     /// is frist print error
     first_err: Arc<MutDataObj<bool>>,
+    /// is print get pool log, default is false
+    get_pool_log: Arc<MutDataObj<bool>>,
 }
 
 /// support default
@@ -86,6 +90,7 @@ impl Default for Runtime {
             running: MutDataObj::new(false).into(),
             thread_pool_num: MutDataObj::new(100).into(),
             first_err: MutDataObj::new(false).into(),
+            get_pool_log: MutDataObj::new(false).into(),
         }
     }
 }
@@ -157,11 +162,13 @@ impl Runtime {
         let pool =
             match self.try_get_pool() {
                 Ok(pool) => {
-                    self.first_err.set_true();
+                    if **self.get_pool_log {
+                        self.first_err.set_true();
+                    }
                     pool
                 }
                 Err(e) => {
-                    if **self.first_err {
+                    if **self.get_pool_log && **self.first_err {
                         self.first_err.set_false();
                         log::error!("try get pool fail: {e:?}");
                     }
@@ -311,4 +318,14 @@ pub fn get_tasks_num() -> usize {
         len + runtime.tcp_server.len() + runtime.tcp_server_client.len()
     };
     len
+}
+
+/// print get pool err log
+pub fn print_get_pool_error() {
+    runtime.get_pool_log.set_true();
+}
+
+/// don't print get pool err log
+pub fn not_print_get_pool_error() {
+    runtime.get_pool_log.set_false();
 }
