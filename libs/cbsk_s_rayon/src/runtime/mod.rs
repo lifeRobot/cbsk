@@ -54,6 +54,9 @@ pub(crate) struct Runtime {
     pool: Arc<MutDataVec<(ThreadPool, isize)>>,
     /// is global runtime running
     running: Arc<MutDataObj<bool>>,
+    /// number of thread pools, default is 100<br />
+    /// each thread pool has ten threads, so the maximum number of threads is 10 * thread_pool_num
+    thread_pool_num: Arc<MutDataObj<u8>>,
 }
 
 /// support default
@@ -73,6 +76,7 @@ impl Default for Runtime {
             once: MutDataVec::with_capacity(2).into(),
             pool: pool.into(),
             running: MutDataObj::new(false).into(),
+            thread_pool_num: MutDataObj::new(100).into(),
         }
     }
 }
@@ -124,6 +128,10 @@ impl Runtime {
                 log::info!("pool i[{i}], j[{}]",pool.1);
                 return Ok(pool);
             }
+        }
+
+        if self.pool.len() >= usize::from(**self.thread_pool_num) {
+            return Err(anyhow::anyhow!("exceeded the maximum number of threads and needs to wait for thread release"));
         }
 
         // if not pool, build once and return
@@ -262,4 +270,9 @@ pub fn push_task(interval: Duration, task: impl Fn(&Timer) + Sync + Send + 'stat
 /// start runtime
 pub fn start() {
     runtime.start();
+}
+
+/// set number of thread pools
+pub fn set_thread_pool_num(thread_pool_num: u8) {
+    runtime.thread_pool_num.set(thread_pool_num);
 }

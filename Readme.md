@@ -23,7 +23,7 @@ Cargo.toml:
 
 ```toml
 cbsk_base = { version = "0.1.8", default-features = false, features = ["once_cell"] }
-cbsk = { version = "1.0.2", features = ["server_tokio"] }
+cbsk = { version = "1.0.3", features = ["server_tokio"] }
 ```
 
 main.rs:
