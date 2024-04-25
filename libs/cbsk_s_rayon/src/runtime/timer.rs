@@ -1,12 +1,9 @@
 use std::time::Duration;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
-use crate::runtime::timer_loop::TimerLoop;
 use crate::runtime::timer_state::TimerState;
 
 /// timed tasks
 pub struct Timer {
-    /// tasks loop interval
-    timer_loop: TimerLoop,
     /// whether to end the task
     pub(crate) end: MutDataObj<bool>,
     /// the last task run time
@@ -15,28 +12,19 @@ pub struct Timer {
     timer_state: MutDataObj<TimerState>,
     /// task
     task: Box<dyn Fn(&Self) + Sync + Send>,
+    /// task loop interval
+    interval: Duration,
 }
 
 impl Timer {
-    /// one time task
-    pub fn once(task: impl Fn(&Self) + Sync + Send + 'static) -> Self {
-        Self {
-            timer_loop: TimerLoop::Once,
-            end: MutDataObj::new(false),
-            last_time: MutDataObj::new(Self::now()),
-            timer_state: MutDataObj::new(TimerState::Ready),
-            task: Box::new(task),
-        }
-    }
-
     /// create loop task
     pub fn new(interval: Duration, task: impl Fn(&Self) + Sync + Send + 'static) -> Self {
         Self {
-            timer_loop: TimerLoop::Interval(interval),
             end: MutDataObj::new(false),
             last_time: MutDataObj::new(Self::now()),
             timer_state: MutDataObj::new(TimerState::Ready),
             task: Box::new(task),
+            interval,
         }
     }
 
@@ -57,26 +45,15 @@ impl Timer {
             return false;
         }
 
-        let interval =
-            match &self.timer_loop {
-                TimerLoop::Once => { return true; }
-                TimerLoop::Interval(interval) => { interval }
-            };
-
         let now = Self::now();
         let diff = u128::try_from(now - *self.last_time).unwrap_or_default();
-        diff >= interval.as_millis()
+        diff >= self.interval.as_millis()
     }
 
     /// run task
     pub(crate) fn run(&self) {
         self.timer_state.set(TimerState::Running);
         (self.task)(self);
-
-        if let TimerLoop::Once = &self.timer_loop {
-            self.task_end();
-            return;
-        }
 
         self.last_time.set(Self::now());
         self.timer_state.set(TimerState::Ready);

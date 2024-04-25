@@ -16,7 +16,6 @@ use crate::server::client::TcpServerClient;
 use crate::server::TcpServer;
 
 pub mod timer;
-mod timer_loop;
 mod timer_state;
 
 /// global runtime
@@ -49,6 +48,8 @@ pub(crate) struct Runtime {
     pub tcp_client: Arc<MutDataVec<TcpClient>>,
     /// timer tasks
     timer: Arc<MutDataVec<Arc<Timer>>>,
+    /// once tasks
+    once: Arc<MutDataVec<Box<dyn FnOnce() + Send>>>,
     /// thread pool
     pool: Arc<MutDataVec<(ThreadPool, isize)>>,
     /// is global runtime running
@@ -68,7 +69,8 @@ impl Default for Runtime {
             tcp_server_client: MutDataVec::with_capacity(2).into(),
             #[cfg(feature = "tcp_client")]
             tcp_client: MutDataVec::with_capacity(2).into(),
-            timer: MutDataVec::default().into(),
+            timer: MutDataVec::with_capacity(2).into(),
+            once: MutDataVec::with_capacity(2).into(),
             pool: pool.into(),
             running: MutDataObj::new(false).into(),
         }
@@ -92,8 +94,9 @@ impl Runtime {
             log::error!("start global runtime fail");
             self.running.set_false();
         });
-        add_spawn(pool, Box::new(|| {
+        add_spawn(pool, || {
             loop {
+                runtime.run_once();
                 runtime.run_timer();
                 #[cfg(feature = "tcp_server")]
                 runtime.run_tcp_server();
@@ -104,25 +107,40 @@ impl Runtime {
 
                 thread::sleep(Duration::from_millis(10));
             }
-        }));
+        });
     }
 
     /// try get pool
     fn try_get_pool(&self) -> anyhow::Result<MutDataRef<(ThreadPool, isize)>> {
+        #[cfg(not(feature = "debug_mode"))]
         for pool in self.pool.iter_mut() {
             if pool.1 < 10 {
+                return Ok(pool);
+            }
+        }
+        #[cfg(feature = "debug_mode")]
+        for (i, pool) in self.pool.iter_mut().enumerate() {
+            if pool.1 < 10 {
+                log::info!("pool i[{i}], j[{}]",pool.1);
                 return Ok(pool);
             }
         }
 
         // if not pool, build once and return
         self.pool.push((try_build_pool().map_err(|e| { anyhow::anyhow!("create new thread pool fail: {e:?}") })?, 0));
+        #[cfg(feature = "debug_mode")]
+        log::info!("build pool[{}]",self.pool.len());
         self.pool.get_mut(self.pool.len() - 1).ok_or_else(|| { anyhow::anyhow!("try get thread pool fail") })
     }
 }
 
 /// run tcp client/server business
 impl Runtime {
+    fn run_once(&self) {
+        let task = cbsk_base::match_some_return!(self.once.pop());
+        add_spawn(get_pool!(), || { task() });
+    }
+
     /// run timer
     fn run_timer(&self) {
         for (i, t) in self.timer.iter().enumerate() {
@@ -139,9 +157,9 @@ impl Runtime {
 
             // if task is can't run
             let t = t.clone();
-            add_spawn(get_pool!(), Box::new(move || {
+            add_spawn(get_pool!(), move || {
                 t.run();
-            }))
+            })
         }
     }
 
@@ -157,9 +175,9 @@ impl Runtime {
                     runtime.tcp_client.remove(i);
                     return;
                 }
-                add_spawn(get_pool!(), Box::new(move || {
+                add_spawn(get_pool!(), move || {
                     tc.conn();
-                }));
+                });
                 continue;
             }
 
@@ -168,9 +186,9 @@ impl Runtime {
                 continue;
             }
             // if tcp not reading
-            add_spawn(get_pool!(), Box::new(move || {
+            add_spawn(get_pool!(), move || {
                 tc.read();
-            }))
+            })
         }
     }
 
@@ -181,9 +199,9 @@ impl Runtime {
             if **ts.listening { return; }
 
             let ts = ts.clone();
-            add_spawn(get_pool!(), Box::new(move || {
+            add_spawn(get_pool!(), move || {
                 ts.listener();
-            }));
+            });
         })
     }
 
@@ -203,15 +221,15 @@ impl Runtime {
                 continue;
             }
 
-            add_spawn(get_pool!(), Box::new(move || {
+            add_spawn(get_pool!(), move || {
                 tc.read(tc.clone());
-            }))
+            })
         }
     }
 }
 
 /// add one spawn
-fn add_spawn(mut pool: MutDataRef<(ThreadPool, isize)>, spawn: Box<dyn Fn() + Send>) {
+fn add_spawn(mut pool: MutDataRef<(ThreadPool, isize)>, spawn: impl FnOnce() + Send + 'static) {
     pool.1 += 1;
     pool.clone().0.spawn(move || {
         spawn();
@@ -231,8 +249,8 @@ fn try_build_pool() -> Result<ThreadPool, ThreadPoolBuildError> {
 
 /// push once task<br />
 /// please do not use dead loops in tasks
-pub fn push_once(task: impl Fn(&Timer) + Sync + Send + 'static) {
-    runtime.timer.push(Timer::once(task).into())
+pub fn push_once(task: impl FnOnce() + Send + 'static) {
+    runtime.once.push(Box::new(task));
 }
 
 /// push interval task<br />
