@@ -26,9 +26,15 @@ pub(crate) static runtime: Lazy<Runtime> = Lazy::new(Runtime::default);
 macro_rules! get_pool {
     () => {
         match runtime.try_get_pool() {
-            Ok(pool) => { pool }
+            Ok(pool) => {
+                runtime.first_err.set_true();
+                pool
+            }
             Err(e) => {
-                log::error!("try get pool fail: {e:?}");
+                if **runtime.first_err {
+                    runtime.first_err.set_false();
+                    log::error!("try get pool fail: {e:?}");
+                }
                 return;
             }
         }
@@ -57,6 +63,8 @@ pub(crate) struct Runtime {
     /// number of thread pools, default is 100<br />
     /// each thread pool has ten threads, so the maximum number of threads is 10 * thread_pool_num
     thread_pool_num: Arc<MutDataObj<u8>>,
+    /// is frist print error
+    first_err: Arc<MutDataObj<bool>>,
 }
 
 /// support default
@@ -77,6 +85,7 @@ impl Default for Runtime {
             pool: pool.into(),
             running: MutDataObj::new(false).into(),
             thread_pool_num: MutDataObj::new(100).into(),
+            first_err: MutDataObj::new(false).into(),
         }
     }
 }
@@ -145,8 +154,23 @@ impl Runtime {
 /// run tcp client/server business
 impl Runtime {
     fn run_once(&self) {
+        let pool =
+            match self.try_get_pool() {
+                Ok(pool) => {
+                    self.first_err.set_true();
+                    pool
+                }
+                Err(e) => {
+                    if **self.first_err {
+                        self.first_err.set_false();
+                        log::error!("try get pool fail: {e:?}");
+                    }
+                    return;
+                }
+            };
+
         let task = cbsk_base::match_some_return!(self.once.pop());
-        add_spawn(get_pool!(), || { task() });
+        add_spawn(pool, || { task() });
     }
 
     /// run timer
@@ -275,4 +299,16 @@ pub fn start() {
 /// set number of thread pools
 pub fn set_thread_pool_num(thread_pool_num: u8) {
     runtime.thread_pool_num.set(thread_pool_num);
+}
+
+/// get tasks num
+pub fn get_tasks_num() -> usize {
+    let len = runtime.timer.len() + runtime.once.len();
+    #[cfg(feature = "tcp_client")]
+        let len = len + runtime.tcp_client.len();
+    #[cfg(feature = "tcp_server")]
+        let len = {
+        len + runtime.tcp_server.len() + runtime.tcp_server_client.len()
+    };
+    len
 }
