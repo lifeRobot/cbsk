@@ -7,8 +7,10 @@ pub struct TcpState {
     pub re_num: i32,
     /// last re connection tcp server time
     pub last_re_time: i64,
-    /// thre tcp client is reading
+    /// the tcp client is reading
     pub reading: bool,
+    /// the tcp client is connecting
+    pub connecting: bool,
 }
 
 /// support default
@@ -19,6 +21,7 @@ impl Default for TcpState {
             re_num: 0,
             last_re_time: 0,
             reading: false,
+            connecting: false,
         }
     }
 }

@@ -158,6 +158,7 @@ impl Runtime {
 
 /// run tcp client/server business
 impl Runtime {
+    /// run once tasks
     fn run_once(&self) {
         let pool =
             match self.try_get_pool() {
@@ -177,6 +178,8 @@ impl Runtime {
             };
 
         let task = cbsk_base::match_some_return!(self.once.pop());
+        #[cfg(feature = "debug_mode")]
+        log::info!("run once");
         add_spawn(pool, || { task() });
     }
 
@@ -191,7 +194,7 @@ impl Runtime {
 
             // if not ready, return
             if !t.ready() {
-                return;
+                continue;
             }
 
             // if task is can't run
@@ -206,7 +209,10 @@ impl Runtime {
     #[cfg(feature = "tcp_client")]
     fn run_tcp_client(&self) {
         for (i, tc) in self.tcp_client.iter().enumerate() {
-            let tc = tc.clone();
+            if tc.state.connecting {
+                continue;
+            }
+
             // if tcp client dis connectioned
             if !tc.is_connected() {
                 // not conn and not first and not re conn, remove this tcp client
@@ -214,6 +220,7 @@ impl Runtime {
                     runtime.tcp_client.remove(i);
                     return;
                 }
+                let tc = tc.clone();
                 add_spawn(get_pool!(), move || {
                     tc.conn();
                 });
@@ -225,6 +232,7 @@ impl Runtime {
                 continue;
             }
             // if tcp not reading
+            let tc = tc.clone();
             add_spawn(get_pool!(), move || {
                 tc.read();
             })
@@ -294,8 +302,8 @@ pub fn push_once(task: impl FnOnce() + Send + 'static) {
 
 /// push interval task<br />
 /// please do not use dead loops in tasks
-pub fn push_task(interval: Duration, task: impl Fn(&Timer) + Sync + Send + 'static) {
-    runtime.timer.push(Timer::new(interval, task).into())
+pub fn push_task(name: impl Into<String>, interval: Duration, task: impl Fn(&Timer) + Sync + Send + 'static) {
+    runtime.timer.push(Timer::new(name, interval, task).into())
 }
 
 /// start runtime
@@ -310,6 +318,17 @@ pub fn set_thread_pool_num(thread_pool_num: u8) {
 
 /// get tasks num
 pub fn get_tasks_num() -> usize {
+    #[cfg(feature = "debug_mode")] {
+        log::info!("timer len is {}", runtime.timer.len());
+        log::info!("once len is {}", runtime.once.len());
+        #[cfg(feature = "tcp_client")]
+        log::info!("tcp client len is {}", runtime.tcp_client.len());
+        #[cfg(feature = "tcp_server")] {
+            log::info!("tcp_server len is {}", runtime.tcp_server.len());
+            log::info!("tcp_server_client len is {}", runtime.tcp_server_client.len());
+        }
+    }
+
     let len = runtime.timer.len() + runtime.once.len();
     #[cfg(feature = "tcp_client")]
         let len = len + runtime.tcp_client.len();

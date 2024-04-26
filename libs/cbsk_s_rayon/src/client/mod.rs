@@ -152,14 +152,17 @@ impl TcpClient {
 
     /// conn tcp server
     pub(crate) fn conn(&self) {
+        self.state.as_mut().connecting = true;
         if self.state.first {
             self.state.as_mut().first = false;
             self.conn_exec();
+            self.state.as_mut().connecting = false;
             return;
         }
 
         // not first conn, check is re conn
         if !self.conf.reconn.enable {
+            self.state.as_mut().connecting = false;
             return;
         }
 
@@ -169,6 +172,7 @@ impl TcpClient {
         self.state.as_mut().re_num = self.state.re_num.saturating_add(1);
         self.cb.re_conn(self.state.re_num);
         self.conn_exec();
+        self.state.as_mut().connecting = false;
     }
 
     /// exec connection to tcp server
@@ -221,6 +225,8 @@ impl TcpClient {
 
     /// try read data from tcp server
     fn try_read(&self) -> anyhow::Result<()> {
+        #[cfg(feature = "debug_mode")]
+        log::info!("{} try read",self.conf.log_head);
         self.set_now();
 
         let mut ts = self.tcp_client.as_ref().as_ref().as_ref().ok_or_else(|| { anyhow::anyhow!("tcp server not connection") })?.as_mut();

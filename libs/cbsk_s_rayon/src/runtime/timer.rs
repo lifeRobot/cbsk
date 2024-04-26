@@ -1,9 +1,13 @@
 use std::time::Duration;
+#[cfg(feature = "debug_mode")]
+use cbsk_base::log;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::runtime::timer_state::TimerState;
 
 /// timed tasks
 pub struct Timer {
+    /// timer name
+    pub name: String,
     /// whether to end the task
     pub(crate) end: MutDataObj<bool>,
     /// the last task run time
@@ -18,8 +22,9 @@ pub struct Timer {
 
 impl Timer {
     /// create loop task
-    pub fn new(interval: Duration, task: impl Fn(&Self) + Sync + Send + 'static) -> Self {
+    pub fn new(name: impl Into<String>, interval: Duration, task: impl Fn(&Self) + Sync + Send + 'static) -> Self {
         Self {
+            name: name.into(),
             end: MutDataObj::new(false),
             last_time: MutDataObj::new(Self::now()),
             timer_state: MutDataObj::new(TimerState::Ready),
@@ -46,12 +51,19 @@ impl Timer {
         }
 
         let now = Self::now();
-        let diff = u128::try_from(now - *self.last_time).unwrap_or_default();
+        let diff = now - *self.last_time;
+        // if time jumps back to the past, return ready true
+        if diff < 0 {
+            return true;
+        }
+        let diff = u128::try_from(diff).unwrap_or_default();
         diff >= self.interval.as_millis()
     }
 
     /// run task
     pub(crate) fn run(&self) {
+        #[cfg(feature = "debug_mode")]
+        log::info!("timer run name is {}",self.name);
         self.timer_state.set(TimerState::Running);
         (self.task)(self);
 

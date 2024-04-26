@@ -131,7 +131,7 @@ impl TcpServerClient {
     /// try read data from tcp client
     fn try_read(&self, tc: Arc<Self>) -> anyhow::Result<()> {
         #[cfg(feature = "debug_mode")]
-        log::info!("try read");
+        log::info!("{} try read", self.log_head);
         self.set_now();
         let mut ts = self.tcp_client.as_mut();
         let len =
@@ -181,14 +181,14 @@ impl TcpServerClient {
 
         if !self.get_wait_callback() && timeout_diff > check_time_out && recv_diff > check_time_out {
             #[cfg(feature = "debug_mode")] {
-                log::info!("timeout_diff is {timeout_diff}");
-                log::info!("recv_diff is {recv_diff}");
-                log::info!("check_time_out is {check_time_out}");
+                log::info!("{} timeout_diff is {timeout_diff}", self.log_head);
+                log::info!("{} recv_diff is {recv_diff}", self.log_head);
+                log::info!("{} check_time_out is {check_time_out}", self.log_head);
             }
 
             // tcp read timeout, directly assuming that tcp has been disconnected
             #[cfg(feature = "debug_mode")]
-            log::warn!("neet abort");
+            log::warn!("{} neet abort", self.log_head);
             self.shutdown();
             self.cb.dis_conn(tc);
         }
