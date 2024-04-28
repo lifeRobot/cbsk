@@ -9,6 +9,7 @@ use cbsk_mut_data::mut_data_vec::MutDataVec;
 use rayon::{ThreadPool, ThreadPoolBuildError};
 #[cfg(feature = "tcp_client")]
 use crate::client::TcpClient;
+use crate::runtime::runtime_loop::RuntimeLoop;
 use crate::runtime::timer::Timer;
 #[cfg(feature = "tcp_server")]
 use crate::server::client::TcpServerClient;
@@ -17,6 +18,7 @@ use crate::server::TcpServer;
 
 pub mod timer;
 mod timer_state;
+mod runtime_loop;
 
 /// global runtime
 #[allow(non_upper_case_globals)]
@@ -69,6 +71,8 @@ pub(crate) struct Runtime {
     first_err: Arc<MutDataObj<bool>>,
     /// is print get pool log, default is false
     get_pool_log: Arc<MutDataObj<bool>>,
+    /// runtime loop
+    runtime_loop: Arc<MutDataObj<RuntimeLoop>>,
 }
 
 /// support default
@@ -91,6 +95,7 @@ impl Default for Runtime {
             thread_pool_num: MutDataObj::new(100).into(),
             first_err: MutDataObj::new(false).into(),
             get_pool_log: MutDataObj::new(false).into(),
+            runtime_loop: MutDataObj::new(RuntimeLoop::Once).into(),
         }
     }
 }
@@ -114,14 +119,17 @@ impl Runtime {
         });
         add_spawn(pool, || {
             loop {
-                runtime.run_once();
-                runtime.run_timer();
-                #[cfg(feature = "tcp_server")]
-                runtime.run_tcp_server();
-                #[cfg(feature = "tcp_server")]
-                runtime.run_tcp_server_client();
-                #[cfg(feature = "tcp_client")]
-                runtime.run_tcp_client();
+                match runtime.runtime_loop.as_ref().as_ref() {
+                    RuntimeLoop::Once => { runtime.run_once(); }
+                    RuntimeLoop::Timer => { runtime.run_timer(); }
+                    #[cfg(feature = "tcp_server")]
+                    RuntimeLoop::TcpServer => { runtime.run_tcp_server(); }
+                    #[cfg(feature = "tcp_server")]
+                    RuntimeLoop::TcpServerClient => { runtime.run_tcp_server_client(); }
+                    #[cfg(feature = "tcp_client")]
+                    RuntimeLoop::TcpClient => { runtime.run_tcp_client(); }
+                }
+
 
                 thread::sleep(Duration::from_millis(10));
             }
@@ -160,31 +168,23 @@ impl Runtime {
 impl Runtime {
     /// run once tasks
     fn run_once(&self) {
-        let pool =
-            match self.try_get_pool() {
-                Ok(pool) => {
-                    if **self.get_pool_log {
-                        self.first_err.set_true();
-                    }
-                    pool
-                }
-                Err(e) => {
-                    if **self.get_pool_log && **self.first_err {
-                        self.first_err.set_false();
-                        log::error!("try get pool fail: {e:?}");
-                    }
-                    return;
-                }
-            };
+        self.runtime_loop.set(RuntimeLoop::Timer);
 
-        let task = cbsk_base::match_some_return!(self.once.pop());
-        #[cfg(feature = "debug_mode")]
-        log::info!("run once");
-        add_spawn(pool, || { task() });
+        while !self.once.is_empty() {
+            let pool = get_pool!();
+            let task = self.once.remove(0);
+            #[cfg(feature = "debug_mode")]
+            log::info!("run once");
+            add_spawn(pool, || { task() });
+        }
     }
 
     /// run timer
     fn run_timer(&self) {
+        #[cfg(feature = "tcp_server")]
+        self.runtime_loop.set(RuntimeLoop::TcpServer);
+        #[cfg(all(feature = "tcp_client", not(feature = "tcp_server")))]
+        self.runtime_loop.set(RuntimeLoop::TcpClient);
         for (i, t) in self.timer.iter().enumerate() {
             // if task is end, remove task and return
             if *t.end {
@@ -208,6 +208,7 @@ impl Runtime {
     /// run tcp client logic
     #[cfg(feature = "tcp_client")]
     fn run_tcp_client(&self) {
+        self.runtime_loop.set(RuntimeLoop::Once);
         for (i, tc) in self.tcp_client.iter().enumerate() {
             if tc.state.connecting {
                 continue;
@@ -242,6 +243,7 @@ impl Runtime {
     /// run tcp server logic
     #[cfg(feature = "tcp_server")]
     fn run_tcp_server(&self) {
+        self.runtime_loop.set(RuntimeLoop::TcpServerClient);
         self.tcp_server.iter().for_each(|ts| {
             if **ts.listening { return; }
 
@@ -255,6 +257,10 @@ impl Runtime {
     /// run tcp server client logic
     #[cfg(feature = "tcp_server")]
     fn run_tcp_server_client(&self) {
+        #[cfg(feature = "tcp_client")]
+        self.runtime_loop.set(RuntimeLoop::TcpClient);
+        #[cfg(not(feature = "tcp_client"))]
+        self.runtime_loop.set(RuntimeLoop::Once);
         for (i, tc) in self.tcp_server_client.iter().enumerate() {
             // if dis connection, remove and return
             if !**tc.connecting {

@@ -1,4 +1,6 @@
 use std::sync::Arc;
+#[cfg(feature = "debug_mode")]
+use cbsk_base::log;
 use cbsk_s_rayon::client::callback::TcpClientCallBack;
 use crate::{business, data};
 use crate::business::client_callback_thread::CbskClientCallBack;
@@ -45,8 +47,18 @@ impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusines<C> {
 
     fn recv(&self, mut bytes: Vec<u8>) -> Vec<u8> {
         // TODO can the following code be optimized? There are too many if and loop
+        #[cfg(feature = "debug_mode")]
+        log::info!("start recv loop");
         loop {
             let mut verify_data = business::verify(bytes, &self.header);
+            #[cfg(feature = "debug_mode")] {
+                log::info!("cbsk recv loop");
+                log::info!("error_frame len is {}", verify_data.error_frame.len());
+                log::info!("too_short_frame len is {}", verify_data.too_short_frame.len());
+                log::info!("data_frame len is {}", verify_data.data_frame.len());
+                log::info!("next_verify_frame len is {}", verify_data.next_verify_frame.len());
+            }
+
             if !verify_data.error_frame.is_empty() {
                 self.cb.error_frame(verify_data.error_frame);
             }
@@ -95,6 +107,9 @@ impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusines<C> {
             // verify logic over, break loop
             break;
         }
+
+        #[cfg(feature = "debug_mode")]
+        log::info!("end recv loop");
 
         // default return empty data
         Vec::new()
