@@ -20,27 +20,25 @@ macro_rules! verify_too_short {
 /// verify if bytes is cbsk frame
 pub fn verify(mut bytes: Vec<u8>, header: &[u8]) -> VerifyData {
     verify_too_short!(bytes,header,Vec::new());
-    // find first frame
-    let h = header[0];
-    let index = cbsk_base::match_some_return!(bytes.iter().position(|b| { b.eq(&h) }),{
-        // header does not exist in bytes
-        VerifyData::fail(bytes)
-    });
 
-    // get next verify frame
-    let mut verify_data = bytes.drain(index..).collect::<Vec<u8>>();
-    verify_too_short!(verify_data,header,bytes);
+    let mut index = bytes.len();
+    for (i, b) in bytes.iter().take(bytes.len() - header.len() + 1).enumerate() {
+        // the first frame different, continue
+        if b != &header[0] { continue; }
 
-    // verify frame
-    for (index, b) in verify_data.iter().skip(1).take(header.len() - 1).enumerate() {
-        if b.ne(&header[index + 1]) {
-            // verify fail, return data
-            let next_verify = verify_data.drain(index..).collect();
-            bytes.append(&mut verify_data);
-            return VerifyData::next_verify(bytes, next_verify);
+        if &bytes[i..i + header.len()] == header {
+            index = i;
+            break;
         }
     }
 
+    // if the bytes not has header, return fail
+    if index == bytes.len() {
+        return VerifyData::fail(bytes);
+    }
+
+    // has header, change bytes to error frame
+    let mut verify_data = bytes.drain(index..).collect::<Vec<u8>>();
     // verify success, remove header frame and return
     VerifyData::new(bytes, verify_data.drain(header.len()..).collect())
 }

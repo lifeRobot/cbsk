@@ -111,6 +111,7 @@ impl TcpClient {
 
         // as long as shutdown is called, tcp_client will be left blank directly
         self.tcp_client.set_none();
+        self.cb.dis_conn();
     }
 }
 
@@ -152,6 +153,8 @@ impl TcpClient {
 
     /// conn tcp server
     pub(crate) fn conn(&self) {
+        #[cfg(feature = "debug_mode")]
+        log::info!("{} conn", self.get_log_head());
         self.state.as_mut().connecting = true;
         if self.state.first {
             self.state.as_mut().first = false;
@@ -217,7 +220,6 @@ impl TcpClient {
             }
             // read error, directly assume that the tcp client has been closed
             self.shutdown();
-            self.cb.dis_conn();
             log::info!("{} tcp server shutdown",self.conf.log_head);
         }
         self.state.as_mut().reading = false;
@@ -276,6 +278,12 @@ impl TcpClient {
         let recv_diff = now - self.get_recv_time();
 
         if !self.get_wait_callback() && timeout_diff > check_time_out && recv_diff > check_time_out {
+            #[cfg(feature = "debug_mode")] {
+                log::info!("{} timeout_diff is {timeout_diff}", self.get_log_head());
+                log::info!("{} recv_diff is {recv_diff}", self.get_log_head());
+                log::info!("{} check_time_out is {check_time_out}", self.get_log_head());
+                log::warn!("{} neet abort", self.get_log_head());
+            }
             // tcp read timeout, directly assuming that tcp has been disconnected
             self.shutdown();
         }

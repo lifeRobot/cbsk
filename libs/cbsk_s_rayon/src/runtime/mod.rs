@@ -6,6 +6,7 @@ use cbsk_base::once_cell::sync::Lazy;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_ref::MutDataRef;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
+use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
 use rayon::{ThreadPool, ThreadPoolBuildError};
 #[cfg(feature = "tcp_client")]
 use crate::client::TcpClient;
@@ -130,7 +131,6 @@ impl Runtime {
                     RuntimeLoop::TcpClient => { runtime.run_tcp_client(); }
                 }
 
-
                 thread::sleep(Duration::from_millis(10));
             }
         });
@@ -175,7 +175,11 @@ impl Runtime {
             let task = self.once.remove(0);
             #[cfg(feature = "debug_mode")]
             log::info!("run once");
-            add_spawn(pool, || { task() });
+            add_spawn(pool, || {
+                task();
+                #[cfg(feature = "debug_mode")]
+                log::info!("once release");
+            });
         }
     }
 
@@ -197,10 +201,15 @@ impl Runtime {
                 continue;
             }
 
+            let pool = get_pool!();
             // if task is can't run
             let t = t.clone();
-            add_spawn(get_pool!(), move || {
+            #[cfg(feature = "debug_mode")]
+            log::info!("{} run timer", t.name);
+            add_spawn(pool, move || {
                 t.run();
+                #[cfg(feature = "debug_mode")]
+                log::info!("{} timer release", t.name);
             })
         }
     }
@@ -221,9 +230,15 @@ impl Runtime {
                     runtime.tcp_client.remove(i);
                     return;
                 }
+
+                let pool = get_pool!();
                 let tc = tc.clone();
-                add_spawn(get_pool!(), move || {
+                #[cfg(feature = "debug_mode")]
+                log::info!("{} run tcp conn", tc.get_log_head());
+                add_spawn(pool, move || {
                     tc.conn();
+                    #[cfg(feature = "debug_mode")]
+                    log::info!("{} tcp conn release", tc.get_log_head());
                 });
                 continue;
             }
@@ -232,10 +247,16 @@ impl Runtime {
                 tc.check_read_finished();
                 continue;
             }
+
+            let pool = get_pool!();
             // if tcp not reading
             let tc = tc.clone();
-            add_spawn(get_pool!(), move || {
+            #[cfg(feature = "debug_mode")]
+            log::info!("{} run tcp read", tc.get_log_head());
+            add_spawn(pool, move || {
                 tc.read();
+                #[cfg(feature = "debug_mode")]
+                log::info!("{} tcp release", tc.get_log_head());
             })
         }
     }
@@ -247,9 +268,14 @@ impl Runtime {
         self.tcp_server.iter().for_each(|ts| {
             if **ts.listening { return; }
 
+            let pool = get_pool!();
             let ts = ts.clone();
-            add_spawn(get_pool!(), move || {
+            #[cfg(feature = "debug_mode")]
+            log::info!("run tcp server listener");
+            add_spawn(pool, move || {
                 ts.listener();
+                #[cfg(feature = "debug_mode")]
+                log::info!("tcp server listener release");
             });
         })
     }
@@ -268,14 +294,19 @@ impl Runtime {
                 return;
             }
 
-            let tc = tc.clone();
             if **tc.reading {
                 tc.check_read_finished(tc.clone());
                 continue;
             }
 
-            add_spawn(get_pool!(), move || {
+            let pool = get_pool!();
+            let tc = tc.clone();
+            #[cfg(feature = "debug_mode")]
+            log::info!("{} run tcp server read", tc.log_head);
+            add_spawn(pool, move || {
                 tc.read(tc.clone());
+                #[cfg(feature = "debug_mode")]
+                log::info!("{} tcp server read release", tc.log_head);
             })
         }
     }
@@ -304,12 +335,16 @@ fn try_build_pool() -> Result<ThreadPool, ThreadPoolBuildError> {
 /// please do not use dead loops in tasks
 pub fn push_once(task: impl FnOnce() + Send + 'static) {
     runtime.once.push(Box::new(task));
+    #[cfg(feature = "debug_mode")]
+    log::info!("add once");
 }
 
 /// push interval task<br />
 /// please do not use dead loops in tasks
 pub fn push_task(name: impl Into<String>, interval: Duration, task: impl Fn(&Timer) + Sync + Send + 'static) {
-    runtime.timer.push(Timer::new(name, interval, task).into())
+    runtime.timer.push(Timer::new(name, interval, task).into());
+    #[cfg(feature = "debug_mode")]
+    log::info!("add timer");
 }
 
 /// start runtime

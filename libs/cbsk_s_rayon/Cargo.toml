@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_s_rayon"
-version = "1.0.8"
+version = "1.0.9"
 edition = "2021"
 description = "cbsk_s_rayon is a socket callback tool"
 readme = "Readme.md"

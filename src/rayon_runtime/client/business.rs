@@ -12,13 +12,15 @@ pub struct CbskClientBusines<C: CbskClientCallBack> {
     pub header: Arc<Vec<u8>>,
     /// business callback
     pub cb: Arc<C>,
+    /// internal log name, used for log printing
+    pub log_head: String,
 }
 
 /// custom method
 impl<C: CbskClientCallBack> CbskClientBusines<C> {
     /// new business
     pub fn new(cb: Arc<C>) -> Self {
-        Self { cb, header: data::default_header().into() }
+        Self { cb, header: data::default_header().into(), log_head: String::new() }
     }
 
     /// new business, custom header frame
@@ -27,7 +29,7 @@ impl<C: CbskClientCallBack> CbskClientBusines<C> {
         if header.is_empty() {
             header = data::default_header()
         }
-        Self { cb, header: header.into() }
+        Self { cb, header: header.into(), log_head: String::new() }
     }
 }
 
@@ -52,11 +54,11 @@ impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusines<C> {
         loop {
             let mut verify_data = business::verify(bytes, &self.header);
             #[cfg(feature = "debug_mode")] {
-                log::info!("cbsk recv loop");
-                log::info!("error_frame len is {}", verify_data.error_frame.len());
-                log::info!("too_short_frame len is {}", verify_data.too_short_frame.len());
-                log::info!("data_frame len is {}", verify_data.data_frame.len());
-                log::info!("next_verify_frame len is {}", verify_data.next_verify_frame.len());
+                log::info!("{} cbsk recv loop", self.log_head);
+                log::info!("{} error_frame len is {}", self.log_head, verify_data.error_frame.len());
+                log::info!("{} too_short_frame len is {}", self.log_head, verify_data.too_short_frame.len());
+                log::info!("{} data_frame len is {}", self.log_head, verify_data.data_frame.len());
+                log::info!("{} next_verify_frame len is {}", self.log_head, verify_data.next_verify_frame.len());
             }
 
             if !verify_data.error_frame.is_empty() {

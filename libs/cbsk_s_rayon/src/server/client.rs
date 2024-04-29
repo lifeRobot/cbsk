@@ -121,7 +121,7 @@ impl TcpServerClient {
                 log::error!("{} tcp client read data error: {e:?}",self.log_head);
             }
             #[cfg(feature = "debug_mode")]
-            log::warn!("read err");
+            log::warn!("{} read err", self.log_head);
             self.shutdown();
             self.cb.dis_conn(tc);
         }
@@ -184,11 +184,10 @@ impl TcpServerClient {
                 log::info!("{} timeout_diff is {timeout_diff}", self.log_head);
                 log::info!("{} recv_diff is {recv_diff}", self.log_head);
                 log::info!("{} check_time_out is {check_time_out}", self.log_head);
+                log::warn!("{} neet abort", self.log_head);
             }
 
             // tcp read timeout, directly assuming that tcp has been disconnected
-            #[cfg(feature = "debug_mode")]
-            log::warn!("{} neet abort", self.log_head);
             self.shutdown();
             self.cb.dis_conn(tc);
         }

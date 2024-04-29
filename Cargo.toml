@@ -1,6 +1,6 @@
 [package]
 name = "cbsk"
-version = "1.0.8"
+version = "1.0.9"
 edition = "2021"
 description = "cbsk is a callback socket tool"
 readme = "Readme.md"
@@ -17,7 +17,7 @@ cbsk_base = { version = "0.1.8", default-features = false, features = ["macro"] 
 #cbsk_socket = { path = "libs/cbsk_socket", default-features = false }
 #cbsk_s_rayon = { path = "libs/cbsk_s_rayon", optional = true, default-features = false }
 cbsk_socket = { version = "1.0.1", default-features = false }
-cbsk_s_rayon = { version = "1.0.8", optional = true, default-features = false }
+cbsk_s_rayon = { version = "1.0.9", optional = true, default-features = false }
 
 [features]
 default = ["client_tokio"]
