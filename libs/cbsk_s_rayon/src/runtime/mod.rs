@@ -6,6 +6,7 @@ use cbsk_base::once_cell::sync::Lazy;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_ref::MutDataRef;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
+#[cfg(feature = "debug_mode")]
 use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
 use rayon::{ThreadPool, ThreadPoolBuildError};
 #[cfg(feature = "tcp_client")]

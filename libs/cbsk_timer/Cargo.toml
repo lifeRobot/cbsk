@@ -1,0 +1,17 @@
+[package]
+name = "cbsk_timer"
+version = "0.1.0"
+edition = "2021"
+description = "cbsk_timer is a rayon thread runtime"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures"]
+keywords = ["rayon", "runtime", "timer"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_timer"
+
+[dependencies]
+cbsk_base = { version = "0.1.8", features = ["once_cell", "log"] }
+cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["vec"] }
+rayon = "1.10.0"
+fastdate = "0.3.28"

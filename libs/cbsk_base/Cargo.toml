@@ -13,11 +13,11 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_base"
 
 [dependencies]
 tokio = { version = "1.37.0", optional = true }
-anyhow = { version = "1.0.81", optional = true }
+anyhow = { version = "1.0.83", optional = true }
 once_cell = { version = "1.19.0", optional = true }
 
-serde = { version = "1.0.197", optional = true }
-serde_json = { version = "1.0.115", optional = true }
+serde = { version = "1.0.200", optional = true }
+serde_json = { version = "1.0.116", optional = true }
 
 log = { version = "0.4.21", optional = true }
 
