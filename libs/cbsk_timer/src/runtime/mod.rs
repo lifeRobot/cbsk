@@ -1,6 +1,8 @@
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
+#[cfg(feature = "debug_mode")]
+use cbsk_base::log;
 use cbsk_base::once_cell::sync::Lazy;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
@@ -18,7 +20,7 @@ pub struct Runtime {
     /// timer tasks
     pub(crate) timer: Arc<MutDataVec<Arc<MutDataObj<TimerRun>>>>,
     /// thread pool
-    pool: Arc<Pool>,
+    pub(crate) pool: Arc<Pool>,
     /// is global runtime running
     running: Arc<MutDataObj<bool>>,
 }
@@ -69,10 +71,13 @@ impl Runtime {
             }
 
             let task = self.once.remove(0);
+            #[cfg(feature = "debug_mode")]
+            log::info!("run once");
             self.pool.spawn(task);
         }
     }
 
+    /// run timer tasks
     fn run_timer(&self) {
         for (i, t) in self.timer.iter().enumerate() {
             // if task is end, remove task and return
@@ -81,6 +86,10 @@ impl Runtime {
                 return;
             }
 
+            // can't run before, next
+            if !t.timer.run_before() {
+                continue;
+            }
             // if not ready, next
             if !t.is_ready() {
                 continue;
@@ -89,17 +98,19 @@ impl Runtime {
             if !self.pool.is_idle() {
                 continue;
             }
-            // can't run before, next
-            if !t.timer.run_before() {
-                continue;
-            }
 
             // if task is can't run
             t.as_mut().running();
             let t = t.clone();
             self.pool.spawn(move || {
+                #[cfg(feature = "debug_mode")]
+                log::info!("{} run timer", t.timer.name());
+
                 t.timer.run();
                 t.as_mut().ready();
+
+                #[cfg(feature = "debug_mode")]
+                log::info!("{} timer release", t.timer.name());
             })
         }
     }

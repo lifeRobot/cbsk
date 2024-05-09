@@ -3,12 +3,14 @@ use std::sync::Arc;
 use cbsk_base::{anyhow, log};
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_socket::tcp::common::server::config::TcpServerConfig;
-use crate::runtime::runtime;
+use cbsk_timer::timer::Timer;
 use crate::server::callback::TcpServerCallBack;
 use crate::server::client::TcpServerClient;
 
 pub mod callback;
 pub mod client;
+mod timer;
+mod client_timer;
 
 /// tcp server
 #[derive(Clone)]
@@ -49,8 +51,9 @@ impl TcpServer {
 
     /// start tcp server
     pub fn start(&self) {
-        runtime.tcp_server.push(self.clone());
-        runtime.start();
+        timer::TcpServerTimer::new(self.clone()).start();
+        /*runtime.tcp_server.push(self.clone());
+        runtime.start();*/
     }
 
     /// listener server
@@ -76,7 +79,8 @@ impl TcpServer {
             log::error!("set read time out fail: {e:?}");
         }
         let tc = Arc::new(TcpServerClient::new(addr, self, MutDataObj::new(ts).into()));
-        runtime.tcp_server_client.push(tc.clone());
+        client_timer::TcpServerClientTimer::new(tc.clone()).start();
+        // runtime.tcp_server_client.push(tc.clone());
         #[cfg(feature = "debug_mode")]
         log::info!("{} add to tcp server client",tc.log_head);
         self.cb.conn(tc);

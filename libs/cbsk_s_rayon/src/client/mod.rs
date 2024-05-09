@@ -8,12 +8,14 @@ use cbsk_mut_data::mut_data_vec::MutDataVec;
 use cbsk_socket::tcp::common::client::config::TcpClientConfig;
 use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
 use cbsk_socket::tcp::common::tcp_time_trait::TcpTimeTrait;
+use cbsk_timer::timer::Timer;
 use crate::client::callback::TcpClientCallBack;
 use crate::client::state::TcpState;
-use crate::runtime::runtime;
 
 pub mod callback;
 pub mod state;
+mod timer;
+pub mod timer_state;
 
 /// tcp client
 #[derive(Clone)]
@@ -142,8 +144,9 @@ impl TcpClient {
     /// start tcp client
     pub fn start(&self) {
         self.buf.set(vec![0; self.buf_len]);
-        runtime.tcp_client.push(self.clone());
-        runtime.start();
+        timer::TcpClientTimer::new(self.clone()).start();
+        /*runtime.tcp_client.push(self.clone());
+        runtime.start();*/
     }
 
     /// get has the tcp server connection been success

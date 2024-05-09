@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_timer"
-version = "0.1.0"
+version = "1.1.0"
 edition = "2021"
 description = "cbsk_timer is a rayon thread runtime"
 readme = "Readme.md"
@@ -15,3 +15,6 @@ cbsk_base = { version = "0.1.8", features = ["once_cell", "log"] }
 cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["vec"] }
 rayon = "1.10.0"
 fastdate = "0.3.28"
+
+[features]
+debug_mode = []
