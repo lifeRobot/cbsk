@@ -14,6 +14,7 @@ cbsk_base also supports some custom trait, like ToJson,FromJson and some macro
 | [log](https://crates.io/crates/log)                         | [github](https://github.com/rust-lang/log)          | 0.4.21  |
 | [async-trait](https://crates.io/crates/async-trait)         | [github](https://github.com/dtolnay/async-trait)    | 0.1.80  |
 | [async-recursion](https://crates.io/crates/async-recursion) | [github](https://github.com/dcchut/async-recursion) | 1.1.1   |
+| [fastdate](https://crates.io/crates/fastdate)               | [github](https://github.com/rbatis/fastdate)        | 0.3.28  |
 
 ### serde example
 
@@ -24,7 +25,7 @@ the struct impl Deserialize, will auto impl FromJson
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "1.1.0", features = ["serde_derive_json"] }
+cbsk_base = { version = "1.2.0", features = ["serde_derive_json"] }
 ```
 
 main.rs file :
@@ -55,7 +56,7 @@ fn main() {
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "1.1.0", features = ["macro", "anyhow"] }
+cbsk_base = { version = "1.2.0", features = ["macro", "anyhow"] }
 ```
 
 main.rs file :
@@ -96,7 +97,7 @@ fn exec_option() {
 Cargo.toml file:
 
 ```toml
-cbsk_base = { version = "1.1.0", features = ["root_path"] }
+cbsk_base = { version = "1.2.0", features = ["root_path"] }
 ```
 
 main.rs file:

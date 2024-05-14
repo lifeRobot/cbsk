@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
@@ -13,8 +13,10 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { version = "1.1.0", features = ["serde_derive_json", "anyhow", "log"] }
-cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["obj"] }
+#cbsk_base = { path = "../cbsk_base", features = ["serde_derive_json", "anyhow", "log"] }
+#cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["obj"] }
+cbsk_base = { version = "1.2.0", features = ["serde_derive_json", "anyhow", "log"] }
+cbsk_mut_data = { version = "1.2.0", default-features = false, features = ["obj"] }
 fastdate = "0.3.28"
 
 # ws crates

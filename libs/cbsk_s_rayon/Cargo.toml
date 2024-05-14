@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_s_rayon"
-version = "1.1.0"
+version = "1.2.0"
 edition = "2021"
 description = "cbsk_s_rayon is a socket callback tool"
 readme = "Readme.md"
@@ -13,12 +13,14 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_s_rayon"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { version = "1.1.0", features = ["log", "macro", "once_cell"] }
-cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["vec"] }
+#cbsk_base = { path = "../cbsk_base", features = ["log", "macro", "once_cell"] }
+#cbsk_mut_data = { version = "1.0.0", default-features = false, features = ["vec"] }
 #cbsk_timer = { path = "../cbsk_timer" }
 #cbsk_socket = { path = "../cbsk_socket", default-features = false }
-cbsk_timer = { version = "1.1.0" }
-cbsk_socket = { version = "1.1.0", default-features = false }
+cbsk_base = { version = "1.2.0", features = ["log", "macro", "once_cell", "anyhow"] }
+cbsk_mut_data = { version = "1.2.0", default-features = false, features = ["vec"] }
+cbsk_timer = { version = "1.2.0" }
+cbsk_socket = { version = "1.2.0", default-features = false }
 
 [features]
 default = ["tcp_client"]

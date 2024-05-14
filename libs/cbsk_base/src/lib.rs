@@ -14,6 +14,8 @@ pub use log;
 pub use async_trait;
 #[cfg(feature = "async-recursion")]
 pub use async_recursion;
+#[cfg(feature = "fastdate")]
+pub use fastdate;
 
 #[cfg(feature = "macro")]
 pub mod r#macro;

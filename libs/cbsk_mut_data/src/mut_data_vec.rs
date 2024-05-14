@@ -1,5 +1,5 @@
-use std::ops::Deref;
-use std::vec::IntoIter;
+use std::ops::{Deref, RangeBounds};
+use std::vec::{Drain, IntoIter};
 use crate::mut_data_obj::MutDataObj;
 use crate::mut_data_ref::MutDataRef;
 
@@ -21,14 +21,19 @@ impl<T> MutDataVec<T> {
         Self { data: MutDataObj::new(Vec::with_capacity(capacity)) }
     }
 
-    /// push data
+    /// push data, more see [Vec::push]
     pub fn push(&self, t: T) {
         self.as_mut().push(t);
     }
 
-    /// append data
+    /// append data, more see [Vec::append]
     pub fn append(&self, other: &mut Vec<T>) {
         self.as_mut().append(other)
+    }
+
+    /// drain data, more see [Vec::drain]
+    pub fn drain(&self, range: impl RangeBounds<usize>) -> Drain<T> {
+        self.as_raw_mut().drain(range)
     }
 
     /// get mu data
@@ -41,20 +46,17 @@ impl<T> MutDataVec<T> {
         self.as_mut().last_mut().map(MutDataRef::new_ref)
     }
 
-    /// remove a data<br />
-    /// more see [Vec::remove]
+    /// remove a data, more see [Vec::remove]
     pub fn remove(&self, index: usize) -> T {
         self.as_mut().remove(index)
     }
 
-    /// clear data<br />
-    /// more see [Vec::clear]
+    /// clear data, more see [Vec::clear]
     pub fn clear(&self) {
         self.as_mut().clear();
     }
 
-    /// pop data<br />
-    /// more see [Vec::pop]
+    /// pop data, more see [Vec::pop]
     pub fn pop(&self) -> Option<T> {
         self.as_mut().pop()
     }

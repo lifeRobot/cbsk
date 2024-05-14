@@ -1,0 +1,24 @@
+[package]
+name = "cbsk_log"
+version = "1.2.0"
+edition = "2021"
+description = "cbsk_log is a log tool"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
+
+[dependencies]
+crossbeam = "0.8.4"
+# currently only supports zip compression
+zip = { version = "1.2.3", default-features = false, features = ["deflate"] }
+jui_file = "0.1.24"
+#jui_file = { path = "../../../jui/libs/jui_file" }
+
+#cbsk_base = { path = "../cbsk_base", features = ["once_cell", "log", "fastdate", "macro"] }
+#cbsk_mut_data = { path = "../cbsk_mut_data", default-features = false, features = ["vec"] }
+#cbsk_timer = { path = "../cbsk_timer" }
+cbsk_base = { version = "1.2.0", features = ["once_cell", "log"] }
+cbsk_mut_data = { version = "1.2.0", default-features = false, features = ["vec"] }
+cbsk_timer = { version = "1.2.0" }
