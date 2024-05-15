@@ -39,7 +39,7 @@ impl ZipPacker {
         z.start_file(split_name.as_str(), SimpleFileOptions::default())?;
         let mut file = jui_file::just_open_file(split_path.as_ref())?;
         std::io::copy(&mut file, &mut z)?;
-        z.flush()?;
+        z.finish()?.flush()?;
         std::fs::remove_file(split_path.as_str())?;
 
         if let Some(pack_end) = self.pack_end.as_ref() {

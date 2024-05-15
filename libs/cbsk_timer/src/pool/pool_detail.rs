@@ -1,4 +1,6 @@
 use std::sync::Arc;
+#[cfg(feature = "debug_mode")]
+use cbsk_base::log;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use rayon::{ThreadPool, ThreadPoolBuilder};
 
@@ -35,10 +37,14 @@ impl PoolDetail {
     /// if immediate operation is required, please call [Self::is_idle] first to determine if the thread pool is idle
     pub fn spawn(&self, f: impl FnOnce() + Send + 'static) {
         *self.used.as_mut() += 1;
+        #[cfg(feature = "debug_mode")]
+        log::info!("run thread, used is {}",self.used);
         let pool = self.clone();
         self.thread_pool.spawn(move || {
             f();
             *pool.used.as_mut() -= 1;
+            #[cfg(feature = "debug_mode")]
+            log::info!("thread release, used is {}",pool.used);
         })
     }
 

@@ -52,8 +52,6 @@ impl TcpServer {
     /// start tcp server
     pub fn start(&self) {
         timer::TcpServerTimer::new(self.clone()).start();
-        /*runtime.tcp_server.push(self.clone());
-        runtime.start();*/
     }
 
     /// listener server

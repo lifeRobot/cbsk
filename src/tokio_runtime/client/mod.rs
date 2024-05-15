@@ -1,7 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
-use cbsk_socket::cbsk_base::tokio::task::JoinHandle;
+use cbsk_base::tokio::task::JoinHandle;
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::client::config::TcpClientConfig;
 use cbsk_socket::tcp::client::TcpClient;

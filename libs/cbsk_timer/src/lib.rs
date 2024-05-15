@@ -25,6 +25,8 @@ pub fn push_once(task: impl FnOnce() + Send + 'static) {
 /// more see souce code [runtime::Runtime::run_timer]<br />
 /// please do not use dead loops in [Timer::run_before] and [Timer::run]
 pub fn push_timer(timer: impl Timer) {
+    #[cfg(feature = "debug_mode")]
+    log::info!("push timer {}",timer.name());
     runtime::runtime.timer.push(MutDataObj::new(TimerRun::new(timer)).into())
 }
 

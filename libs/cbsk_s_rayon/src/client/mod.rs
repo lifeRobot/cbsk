@@ -162,15 +162,11 @@ impl TcpClient {
         if self.state.first {
             self.state.as_mut().first = false;
             self.conn_exec();
-            self.state.as_mut().connecting = false;
             return;
         }
 
         // not first conn, check is re conn
-        if !self.conf.reconn.enable {
-            self.state.as_mut().connecting = false;
-            return;
-        }
+        if !self.conf.reconn.enable { return; }
 
         // re conn
         let diff = u128::try_from(Self::now() - self.state.last_re_time).unwrap_or_default();
@@ -178,11 +174,12 @@ impl TcpClient {
         self.state.as_mut().re_num = self.state.re_num.saturating_add(1);
         self.cb.re_conn(self.state.re_num);
         self.conn_exec();
-        self.state.as_mut().connecting = false;
     }
 
     /// exec connection to tcp server
     fn conn_exec(&self) {
+        #[cfg(feature = "debug_mode")]
+        log::info!("{} conn exec", self.get_log_head());
         self.state.as_mut().last_re_time = Self::now();
         let ts =
             match self.try_conn() {
@@ -225,6 +222,8 @@ impl TcpClient {
             self.shutdown();
             log::info!("{} tcp server shutdown",self.conf.log_head);
         }
+        #[cfg(feature = "debug_mode")]
+        log::info!("{} try read release",self.conf.log_head);
         self.state.as_mut().reading = false;
     }
 

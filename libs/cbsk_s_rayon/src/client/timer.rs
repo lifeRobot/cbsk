@@ -21,7 +21,10 @@ impl Timer for TcpClientTimer {
 
     fn run(&self) {
         match self.state.as_ref() {
-            TimerState::Conn => { self.tcp_client.conn() }
+            TimerState::Conn => {
+                self.tcp_client.conn();
+                self.tcp_client.state.as_mut().connecting = false;
+            }
             TimerState::Read => { self.tcp_client.read() }
         }
     }
@@ -70,9 +73,9 @@ impl TcpClientTimer {
         }
     }
 
-/*    /// start tcp client timer
-    pub fn start(self) {
-        cbsk_timer::push_timer(self);
-        cbsk_timer::run();
-    }*/
+    /*    /// start tcp client timer
+        pub fn start(self) {
+            cbsk_timer::push_timer(self);
+            cbsk_timer::run();
+        }*/
 }
