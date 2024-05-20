@@ -3,6 +3,7 @@ use std::time::Duration;
 pub(crate) mod timer_state;
 pub(crate) mod timer_run;
 pub mod simple_timer;
+pub(crate) mod once;
 
 /// timer tasks
 pub trait Timer: 'static {

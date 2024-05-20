@@ -37,7 +37,7 @@ pub struct TcpServerClient {
     /// read data buf
     buf: Arc<MutDataVec<u8>>,
     /// next buf data
-    next_buf: Arc<MutDataVec<u8>>,
+    pub(crate) next_buf: Arc<MutDataVec<u8>>,
     /// the tcp client is keep connecting
     pub(crate) connecting: Arc<MutDataObj<bool>>,
 }

@@ -2,6 +2,7 @@ use std::time::Duration;
 #[cfg(feature = "debug_mode")]
 use cbsk_base::log;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
+use crate::timer::once::Once;
 use crate::timer::simple_timer::SimpleTimer;
 use crate::timer::Timer;
 use crate::timer::timer_run::TimerRun;
@@ -18,7 +19,13 @@ pub fn run() {
 /// push once task<br />
 /// please do not use dead loops in tasks
 pub fn push_once(task: impl FnOnce() + Send + 'static) {
-    runtime::runtime.once.push(Box::new(task));
+    runtime::runtime.once.push(Once::once(task));
+}
+
+/// push once task with once name<br />
+/// please do not use dead loops in tasks
+pub fn push_once_with_name(name: impl Into<String>, task: impl FnOnce() + Send + 'static) {
+    runtime::runtime.once.push(Once::new(name, task));
 }
 
 /// push custom timer<br />

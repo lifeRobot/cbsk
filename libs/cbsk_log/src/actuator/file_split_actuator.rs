@@ -78,7 +78,7 @@ impl FileSplitActuator {
         self.now_size.set(0);
         let packer = self.packer.clone();
         let log_path = self.log_path.clone();
-        cbsk_timer::push_once(move || {
+        cbsk_timer::push_once_with_name("[cbsk_log split file]", move || {
             packer.pack(split_name, split_file, log_path);
         })
     }

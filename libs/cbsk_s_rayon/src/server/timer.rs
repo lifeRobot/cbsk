@@ -13,7 +13,7 @@ impl TcpServerTimer {
 
     /// start timer
     pub fn start(self) {
-        cbsk_timer::push_once(move || {
+        cbsk_timer::push_once_with_name(format!("{}listener", self.tcp_server.conf.log_head), move || {
             loop {
                 self.tcp_server.listener();
             }

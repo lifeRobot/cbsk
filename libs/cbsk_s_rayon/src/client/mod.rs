@@ -43,7 +43,7 @@ pub struct TcpClient {
     /// read data buf
     buf: Arc<MutDataVec<u8>>,
     /// next buf data
-    next_buf: Arc<MutDataVec<u8>>,
+    pub(crate) next_buf: Arc<MutDataVec<u8>>,
     /// tcp client state
     pub(crate) state: Arc<MutDataObj<TcpState>>,
 }
@@ -112,8 +112,10 @@ impl TcpClient {
         }
 
         // as long as shutdown is called, tcp_client will be left blank directly
+        if self.tcp_client.is_some() {
+            self.cb.dis_conn();
+        }
         self.tcp_client.set_none();
-        self.cb.dis_conn();
     }
 }
 
@@ -205,6 +207,9 @@ impl TcpClient {
         if let Err(e) = tcp_stream.set_read_timeout(Some(self.conf.read_time_out)) {
             log::error!("{}set tcp read timeout fail: {e:?}",self.conf.log_head);
         }
+        if let Err(e) = tcp_stream.set_nonblocking(true) {
+            log::error!("{}set nonblocking fail: {e:?}",self.conf.log_head);
+        }
 
         self.state.as_mut().re_num = 0;
         log::info!("{} tcp server connect success",self.conf.log_head);
@@ -254,6 +259,8 @@ impl TcpClient {
         // reading a length of 0, it is assumed that the connection has been disconnected
         if len == 0 { return Err(anyhow::anyhow!("read data length is 0, indicating that tcp server is disconnected")); }
 
+        #[cfg(feature = "debug_mode")]
+        log::info!("{} read data len is {len}",self.conf.log_head);
         // set recv time
         self.set_recv_time_now();
         let buf = self.buf.get(0..len).unwrap_or_default();

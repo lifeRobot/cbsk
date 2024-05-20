@@ -1,5 +1,6 @@
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
+use cbsk_socket::tcp::common::tcp_time_trait::TcpTimeTrait;
 use cbsk_timer::timer::Timer;
 use crate::client::timer_state::TimerState;
 
@@ -52,6 +53,16 @@ impl Timer for TcpClientTimer {
             return false;
         }
 
+        // if net buf is empty, and now and timeout time should not exceed 100 milliseconds, return false
+        // note that this approach may result in data not being real-time
+        if self.tcp_client.next_buf.is_empty() {
+            let now = super::TcpClient::now();
+            let timeout_time = self.tcp_client.get_timeout_time();
+            let diff = now - timeout_time;
+            if diff <= 100 {
+                return false;
+            }
+        }
         // just run read
         self.state.set(TimerState::Read);
         true

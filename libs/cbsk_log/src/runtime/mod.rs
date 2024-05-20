@@ -23,7 +23,7 @@ pub struct LogRuntime {}
 impl LogRuntime {
     /// start log timer
     pub fn start(&self) {
-        cbsk_timer::push_once(Self::run);
+        cbsk_timer::push_once_with_name("cbsk_log", Self::run);
         cbsk_timer::run();
     }
 

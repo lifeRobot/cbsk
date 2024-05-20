@@ -7,6 +7,7 @@ use cbsk_base::once_cell::sync::Lazy;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
 use crate::pool::Pool;
+use crate::timer::once::Once;
 use crate::timer::timer_run::TimerRun;
 
 // mod runtime_loop;
@@ -18,7 +19,7 @@ pub static runtime: Lazy<Runtime> = Lazy::new(Runtime::default);
 /// global runtime
 pub struct Runtime {
     /// once tasks
-    pub(crate) once: Arc<MutDataVec<Box<dyn FnOnce() + Send>>>,
+    pub(crate) once: Arc<MutDataVec<Once>>,
     /// timer tasks
     pub(crate) timer: Arc<MutDataVec<Arc<MutDataObj<TimerRun>>>>,
     /// runtime loop
@@ -100,13 +101,15 @@ impl Runtime {
                 continue;
             }
 
-            let task = self.once.remove(0);
+            let once = self.once.remove(0);
             self.pool.spawn(|| {
+                let _name = once.name;
+                let task = once.once;
                 #[cfg(feature = "debug_mode")]
-                log::info!("run once");
+                log::info!("{_name} run once",name);
                 task();
                 #[cfg(feature = "debug_mode")]
-                log::info!("once release");
+                log::info!("{_name} once release {}");
             });
         }
     }
