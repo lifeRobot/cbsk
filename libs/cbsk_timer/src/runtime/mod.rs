@@ -106,10 +106,10 @@ impl Runtime {
                 let _name = once.name;
                 let task = once.once;
                 #[cfg(feature = "debug_mode")]
-                log::info!("{_name} run once",name);
+                log::info!("{_name} run once");
                 task();
                 #[cfg(feature = "debug_mode")]
-                log::info!("{_name} once release {}");
+                log::info!("{_name} once release");
             });
         }
     }
