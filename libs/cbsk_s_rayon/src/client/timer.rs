@@ -42,6 +42,13 @@ impl Timer for TcpClientTimer {
                 return false;
             }
 
+            // check neet conn
+            let diff = u128::try_from(super::TcpClient::now() - self.tcp_client.state.last_re_time).unwrap_or_default();
+            if diff < self.tcp_client.conf.reconn.time.as_millis() {
+                // diff lt reconn wait time, not need for conn
+                return false;
+            }
+
             // need conn
             self.state.set(TimerState::Conn);
             return true;
