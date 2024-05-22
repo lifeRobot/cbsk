@@ -50,8 +50,9 @@ impl CbskServer {
 
     /// use business create cbsk server<br />
     /// buf_len is tcp read data once lengle
-    fn new_with_business<C: CbskServerCallBack>(cb: CbskServerBusines<C>, conf: Arc<TcpServerConfig>, buf_len: usize) -> Self {
+    fn new_with_business<C: CbskServerCallBack>(mut cb: CbskServerBusines<C>, conf: Arc<TcpServerConfig>, buf_len: usize) -> Self {
         let header = cb.header.clone();
+        cb.log_head = conf.log_head.clone();
         let tcp_server = TcpServer::new_with_buf_len(conf, cb, buf_len).into();
         Self { tcp_server, header }
     }

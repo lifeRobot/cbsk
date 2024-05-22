@@ -50,7 +50,7 @@ impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusines<C> {
     fn recv(&self, mut bytes: Vec<u8>) -> Vec<u8> {
         // TODO can the following code be optimized? There are too many if and loop
         #[cfg(feature = "debug_mode")]
-        log::info!("start recv loop");
+        log::info!("{} start recv loop", self.log_head);
         loop {
             let mut verify_data = business::verify(bytes, &self.header);
             #[cfg(feature = "debug_mode")] {
