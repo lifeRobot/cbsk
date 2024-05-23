@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 use cbsk_base::convert::datetime::DateTimeSerialize;
 use cbsk_base::fastdate::DateTime;
+use cbsk_base::log;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::model::log_path::LogPath;
 use crate::model::log_size::LogSize;
@@ -89,7 +90,7 @@ impl FileSplitActuator {
 
         if let Err(e) = self.try_write_flush(bytes) {
             // printing logs here may not be meaningful
-            eprintln!("write fail:{e:?}");
+            log::error!("write fail:{e:?}");
             return;
         }
 

@@ -8,3 +8,5 @@ pub trait Packer: Sync + Send {
     /// do pack
     fn pack(&self, split_name: String, split_path: String, log_path: Arc<LogPath>);
 }
+
+// TODO neet support 7zPacker: https://crates.io/crates/sevenz-rust

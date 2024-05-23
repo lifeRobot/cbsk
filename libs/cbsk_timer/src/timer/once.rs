@@ -16,8 +16,8 @@ impl Once {
         }
     }
 
-    /// create default onec timer
+    /*/// create default onec timer
     pub fn once(task: impl FnOnce() + Send + 'static) -> Self {
         Self::new("default", task)
-    }
+    }*/
 }

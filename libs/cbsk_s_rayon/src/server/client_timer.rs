@@ -41,7 +41,8 @@ impl Timer for TcpServerClientTimer {
             let now = super::TcpServerClient::now();
             let timeout_time = self.tcp_client.get_timeout_time();
             let diff = now - timeout_time;
-            if diff <= 100 {
+            // fixed the issue of returning false after a time jump
+            if diff > 0 && diff <= 100 {
                 return false;
             }
         }

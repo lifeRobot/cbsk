@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_timer"
-version = "1.3.2"
+version = "1.3.3"
 edition = "2021"
 description = "cbsk_timer is a rayon thread runtime"
 readme = "Readme.md"

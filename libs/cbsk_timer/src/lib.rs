@@ -19,18 +19,24 @@ pub fn run() {
 /// push once task<br />
 /// please do not use dead loops in tasks
 pub fn push_once(task: impl FnOnce() + Send + 'static) {
-    #[cfg(feature = "debug_mode")]
-    log::info!("push once default");
-    runtime::runtime.once.push(Once::once(task));
+    push_once_with_name("default", task);
 }
 
 /// push once task with once name<br />
 /// please do not use dead loops in tasks
 pub fn push_once_with_name(name: impl Into<String>, task: impl FnOnce() + Send + 'static) {
     let once = Once::new(name, task);
-    #[cfg(feature = "debug_mode")]
-    log::info!("push once {}", once.name);
+    #[cfg(feature = "debug_mode")]{
+        log::info!("push once {}", once.name);
+        log::info!("before once num {}",runtime::runtime.once.len());
+    }
     runtime::runtime.once.push(once);
+    #[cfg(feature = "debug_mode")]{
+        log::info!("after once num {}",runtime::runtime.once.len());
+        if let Some(last) = runtime::runtime.once.last() {
+            log::info!("last once is {}",last.name);
+        }
+    }
 }
 
 /// push custom timer<br />

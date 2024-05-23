@@ -36,13 +36,13 @@ impl PoolDetail {
     /// will not detect if threads are idle<br />
     /// if immediate operation is required, please call [Self::is_idle] first to determine if the thread pool is idle
     pub fn spawn(&self, f: impl FnOnce() + Send + 'static) {
-        *self.used.as_mut() += 1;
+        self.used.set(self.used.saturating_add(1));
         #[cfg(feature = "debug_mode")]
         log::info!("run thread, used is {}",self.used);
         let pool = self.clone();
         self.thread_pool.spawn(move || {
             f();
-            *pool.used.as_mut() -= 1;
+            pool.used.set(pool.used.saturating_sub(1));
             #[cfg(feature = "debug_mode")]
             log::info!("thread release, used is {}",pool.used);
         })
