@@ -6,7 +6,7 @@ Cargo.toml:
 
 ```toml
 cbsk_base = "1.3.0"
-cbsk_log = "1.3.0"
+cbsk_log = "1.3.2"
 ```
 
 main.rs:
@@ -39,7 +39,7 @@ Cargo.toml:
 
 ```toml
 cbsk_base = "1.3.0"
-cbsk_log = "1.3.0"
+cbsk_log = "1.3.2"
 ```
 
 main.rs:

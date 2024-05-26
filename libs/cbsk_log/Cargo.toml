@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_log"
-version = "1.3.1"
+version = "1.3.2"
 edition = "2021"
 description = "cbsk_log is a log tool"
 readme = "Readme.md"
@@ -12,7 +12,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
 [dependencies]
 crossbeam = "0.8.4"
 # currently only supports zip compression
-zip = { version = "1.3.1", default-features = false, features = ["deflate"] }
+zip = { version = "2.1.0", default-features = false, features = ["deflate"] }
 jui_file = "0.1.24"
 #jui_file = { path = "../../../jui/libs/jui_file" }
 
