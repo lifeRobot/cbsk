@@ -24,6 +24,6 @@ cbsk_socket = { version = "1.3.4", default-features = false }
 
 [features]
 default = ["tcp_client"]
-tcp_client = ["cbsk_socket/tcp_client"]
-tcp_server = ["cbsk_socket/tcp_server"]
+tcp_client = ["cbsk_socket/tcp_client", "cbsk_base/parking_lot"]
+tcp_server = ["cbsk_socket/tcp_server", "cbsk_base/parking_lot"]
 debug_mode = ["cbsk_timer/debug_mode"]
