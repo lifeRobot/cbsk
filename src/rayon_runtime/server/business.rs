@@ -1,4 +1,5 @@
 use std::sync::Arc;
+#[cfg(feature = "debug_mode")]
 use cbsk_base::log;
 use cbsk_s_rayon::server::callback::TcpServerCallBack;
 use cbsk_s_rayon::server::client::TcpServerClient;
@@ -59,7 +60,7 @@ impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
                 log::info!("{} data_frame len is {}", self.log_head, verify_data.data_frame.len());
                 log::info!("{} next_verify_frame len is {}", self.log_head, verify_data.next_verify_frame.len());
             }
-            
+
             if !verify_data.error_frame.is_empty() {
                 self.cb.error_frame(verify_data.error_frame, cbsk_server_client.clone());
             }

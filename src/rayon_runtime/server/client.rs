@@ -1,6 +1,6 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
-use cbsk_base::anyhow;
+use cbsk_base::{anyhow, parking_lot};
 use cbsk_s_rayon::server::client::TcpServerClient;
 use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
 use crate::business;
@@ -13,6 +13,8 @@ pub struct CbskServerClient {
     pub header: Arc<Vec<u8>>,
     /// tcp server client
     tcp_server_client: Arc<TcpServerClient>,
+    /// cbsk write lock
+    lock: parking_lot::Mutex<()>,
 }
 
 
@@ -20,7 +22,7 @@ pub struct CbskServerClient {
 impl CbskServerClient {
     /// create cbsk server client
     pub(crate) fn new(header: Arc<Vec<u8>>, tcp_server_client: Arc<TcpServerClient>) -> Self {
-        Self { header, tcp_server_client }
+        Self { header, tcp_server_client, lock: parking_lot::Mutex::new(()) }
     }
 
     /// get internal log name
@@ -40,8 +42,11 @@ impl CbskWriteTrait for CbskServerClient {
     }
 
     fn try_send_bytes(&self, bytes: Vec<u8>) -> anyhow::Result<()> {
+        let lock = self.lock.lock();
         let frame = business::frame(bytes, self.header.as_slice());
-        self.tcp_server_client.try_send_bytes(frame.as_slice())
+        let result = self.tcp_server_client.try_send_bytes_no_lock(frame.as_slice());
+        drop(lock);
+        result
     }
 }
 

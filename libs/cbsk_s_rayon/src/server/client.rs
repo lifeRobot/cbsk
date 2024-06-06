@@ -1,7 +1,7 @@
 use std::io::{ErrorKind, Read, Write};
 use std::net::{Shutdown, SocketAddr, TcpStream};
 use std::sync::Arc;
-use cbsk_base::{anyhow, log};
+use cbsk_base::{anyhow, log, parking_lot};
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
 use cbsk_socket::tcp::common::server::config::TcpServerConfig;
@@ -40,6 +40,8 @@ pub struct TcpServerClient {
     pub(crate) next_buf: Arc<MutDataVec<u8>>,
     /// the tcp client is keep connecting
     pub(crate) connecting: Arc<MutDataObj<bool>>,
+    /// write data lock
+    lock: parking_lot::Mutex<()>,
 }
 
 /// support tcp time trait
@@ -70,17 +72,27 @@ impl TcpWriteTrait for TcpServerClient {
         self.log_head.as_str()
     }
 
+    /// try send bytes to TCP<br />
+    /// note that this operation will block the thread until the data is sent out
     fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
+        let lock = self.lock.lock();
+        let result = self.try_send_bytes_no_lock(bytes);
+        drop(lock);
+        result
+    }
+}
+
+/// custom method
+impl TcpServerClient {
+    /// try send bytes to TCP and not lock
+    pub fn try_send_bytes_no_lock(&self, bytes: &[u8]) -> anyhow::Result<()> {
         let mut ts = self.tcp_client.as_mut();
 
         ts.write_all(bytes)?;
         ts.flush()?;
         Ok(())
     }
-}
 
-/// custom method
-impl TcpServerClient {
     /// create tcp server client
     pub fn new(addr: SocketAddr, ts: &TcpServer, tcp_client: Arc<MutDataObj<TcpStream>>) -> Self {
         let log_head = format!("{} tcp client[{}]", ts.conf.name, addr);
@@ -98,6 +110,7 @@ impl TcpServerClient {
             buf: Arc::new(vec![0; ts.buf_len].into()),
             next_buf: MutDataVec::with_capacity(ts.buf_len).into(),
             connecting: MutDataObj::new(true).into(),
+            lock: parking_lot::Mutex::new(()),
         }
     }
 

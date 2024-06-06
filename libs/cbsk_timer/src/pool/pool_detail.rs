@@ -1,7 +1,7 @@
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU8, Ordering};
 #[cfg(feature = "debug_mode")]
 use cbsk_base::log;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
 use rayon::{ThreadPool, ThreadPoolBuilder};
 
 /// thread pool detail
@@ -10,7 +10,7 @@ pub struct PoolDetail {
     /// thread pool
     pub thread_pool: Arc<ThreadPool>,
     /// number of threads already in use
-    pub used: Arc<MutDataObj<u8>>,
+    pub used: Arc<AtomicU8>,
     /// max thread number
     pub max: u8,
 }
@@ -27,7 +27,7 @@ impl PoolDetail {
     pub fn try_build() -> Result<Self, rayon::ThreadPoolBuildError> {
         Ok(Self {
             thread_pool: ThreadPoolBuilder::new().num_threads(10).build()?.into(),
-            used: Arc::new(MutDataObj::default()),
+            used: Arc::new(AtomicU8::new(0)),
             max: 10,
         })
     }
@@ -36,20 +36,28 @@ impl PoolDetail {
     /// will not detect if threads are idle<br />
     /// if immediate operation is required, please call [Self::is_idle] first to determine if the thread pool is idle
     pub fn spawn(&self, f: impl FnOnce() + Send + 'static) {
-        self.used.set(self.used.saturating_add(1));
-        #[cfg(feature = "debug_mode")]
-        log::info!("run thread, used is {}",self.used);
+        if self.used.fetch_add(1, Ordering::Release) == u8::MAX {
+            self.used.store(u8::MAX, Ordering::Release)
+        }
+        #[cfg(feature = "debug_mode")] {
+            let used = self.used.load(Ordering::Acquire);
+            log::info!("run thread, used is {used}");
+        }
         let pool = self.clone();
         self.thread_pool.spawn(move || {
             f();
-            pool.used.set(pool.used.saturating_sub(1));
-            #[cfg(feature = "debug_mode")]
-            log::info!("thread release, used is {}",pool.used);
+            if pool.used.fetch_sub(1, Ordering::Release) == u8::MIN {
+                pool.used.store(u8::MIN, Ordering::Release)
+            }
+            #[cfg(feature = "debug_mode")] {
+                let used = pool.used.load(Ordering::Acquire);
+                log::info!("thread release, used is {used}");
+            }
         })
     }
 
     /// is there any idle thread in the thread pool
     pub fn is_idle(&self) -> bool {
-        **self.used < self.max
+        self.used.load(Ordering::Acquire) < self.max
     }
 }

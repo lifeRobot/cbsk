@@ -14,6 +14,8 @@ pub use log;
 pub use async_trait;
 #[cfg(feature = "async-recursion")]
 pub use async_recursion;
+#[cfg(feature = "parking_lot")]
+pub use parking_lot;
 #[cfg(feature = "fastdate")]
 pub use fastdate;
 

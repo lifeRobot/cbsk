@@ -2,7 +2,7 @@ use std::io;
 use std::io::{ErrorKind, Read, Write};
 use std::net::{Shutdown, TcpStream};
 use std::sync::Arc;
-use cbsk_base::{anyhow, log};
+use cbsk_base::{anyhow, log, parking_lot};
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
 use cbsk_socket::tcp::common::client::config::TcpClientConfig;
@@ -46,6 +46,8 @@ pub struct TcpClient {
     pub(crate) next_buf: Arc<MutDataVec<u8>>,
     /// tcp client state
     pub(crate) state: Arc<MutDataObj<TcpState>>,
+    /// write data lock
+    lock: Arc<parking_lot::Mutex<()>>,
 }
 
 /// support tcp time trait
@@ -76,7 +78,20 @@ impl TcpWriteTrait for TcpClient {
         self.conf.log_head.as_str()
     }
 
+    /// try send bytes to TCP<br />
+    /// note that this operation will block the thread until the data is sent out
     fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
+        let lock = self.lock.lock();
+        let result = self.try_send_bytes_no_lock(bytes);
+        drop(lock);
+        result
+    }
+}
+
+/// custom method
+impl TcpClient {
+    /// try send bytes to TCP and not lock
+    pub fn try_send_bytes_no_lock(&self, bytes: &[u8]) -> anyhow::Result<()> {
         let mut tcp_client = self.tcp_client.as_ref().as_ref().as_ref().ok_or_else(|| {
             anyhow::anyhow!("try send data to server, but connect to tcp server not yet")
         })?.as_mut();
@@ -85,10 +100,7 @@ impl TcpWriteTrait for TcpClient {
         tcp_client.flush()?;
         Ok(())
     }
-}
 
-/// custom method
-impl TcpClient {
     /// stop tcp server connect<br />
     /// will shutdown tcp connection and will not new connection
     pub fn stop(&self) {
@@ -140,6 +152,7 @@ impl TcpClient {
             buf: MutDataVec::default().into(),
             next_buf: MutDataVec::with_capacity(buf_len).into(),
             state: Arc::new(MutDataObj::default()),
+            lock: parking_lot::Mutex::new(()).into(),
         }
     }
 
@@ -147,8 +160,6 @@ impl TcpClient {
     pub fn start(&self) {
         self.buf.set(vec![0; self.buf_len]);
         timer::TcpClientTimer::new(self.clone()).start();
-        /*runtime.tcp_client.push(self.clone());
-        runtime.start();*/
     }
 
     /// get has the tcp server connection been success

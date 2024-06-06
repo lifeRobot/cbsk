@@ -16,16 +16,16 @@ repository = "https://github.com/lifeRobot/cbsk"
 #cbsk_base = { path = "libs/cbsk_base", default-features = false, features = ["macro"] }
 #cbsk_socket = { path = "libs/cbsk_socket", default-features = false }
 #cbsk_s_rayon = { path = "libs/cbsk_s_rayon", optional = true, default-features = false }
-cbsk_base = { version = "1.3.0", default-features = false, features = ["macro"] }
-cbsk_socket = { version = "1.3.0", default-features = false }
-cbsk_s_rayon = { version = "1.3.1", optional = true, default-features = false }
+cbsk_base = { version = "1.3.4", default-features = false, features = ["macro"] }
+cbsk_socket = { version = "1.3.4", default-features = false }
+cbsk_s_rayon = { version = "1.3.4", optional = true, default-features = false }
 
 [features]
 default = ["client_tokio"]
 # rayon runtime client
-client_rayon = ["cbsk_s_rayon/tcp_client"]
+client_rayon = ["cbsk_s_rayon/tcp_client", "cbsk_base/parking_lot"]
 # rayon runtime server
-server_rayon = ["cbsk_s_rayon/tcp_server"]
+server_rayon = ["cbsk_s_rayon/tcp_server", "cbsk_base/parking_lot"]
 # tokio runtime client
 client_tokio = ["cbsk_socket/tokio_tcp", "cbsk_socket/tcp_client"]
 # tokio runtime server

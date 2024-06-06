@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket"
-version = "1.3.0"
+version = "1.3.4"
 edition = "2021"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
@@ -15,8 +15,8 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket"
 [dependencies]
 #cbsk_base = { path = "../cbsk_base", features = ["serde_derive_json", "anyhow", "log"] }
 #cbsk_mut_data = { path = "../cbsk_mut_data", default-features = false, features = ["obj"] }
-cbsk_base = { version = "1.3.0", features = ["serde_derive_json", "anyhow", "log"] }
-cbsk_mut_data = { version = "1.3.0", default-features = false, features = ["obj"] }
+cbsk_base = { version = "1.3.4", features = ["serde_derive_json", "anyhow", "log"] }
+cbsk_mut_data = { version = "1.3.4", default-features = false, features = ["obj"] }
 fastdate = "0.3.28"
 
 # ws crates

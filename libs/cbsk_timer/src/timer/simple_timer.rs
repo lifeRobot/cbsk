@@ -1,12 +1,12 @@
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
 
 /// simple timer tasks
 pub struct SimpleTimer {
     /// timer name
     pub name: String,
     /// whether to end the task
-    pub(crate) end: MutDataObj<bool>,
+    pub(crate) end: AtomicBool,
     /// task
     pub task: Box<dyn Fn(&Self)>,
     /// task loop interval
@@ -24,7 +24,7 @@ impl super::Timer for SimpleTimer {
     }
 
     fn ended(&self) -> bool {
-        *self.end
+        self.end.load(Ordering::Acquire)
     }
 
     fn interval(&self) -> Option<Duration> {
@@ -38,7 +38,7 @@ impl SimpleTimer {
     pub fn new(name: impl Into<String>, interval: Duration, task: impl Fn(&Self) + 'static) -> Self {
         Self {
             name: name.into(),
-            end: MutDataObj::default(),
+            end: AtomicBool::new(false),
             task: Box::new(task),
             interval,
         }
@@ -46,6 +46,6 @@ impl SimpleTimer {
 
     /// notification timer task needs to end
     pub fn task_end(&self) {
-        self.end.set_true();
+        self.end.store(true, Ordering::Release)
     }
 }

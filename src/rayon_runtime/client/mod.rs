@@ -1,6 +1,7 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
+use cbsk_base::parking_lot;
 use cbsk_s_rayon::client::TcpClient;
 use cbsk_socket::config::re_conn::SocketReConn;
 use cbsk_socket::tcp::common::client::config::TcpClientConfig;
@@ -18,6 +19,8 @@ pub struct CbskClient {
     tcp_client: Arc<TcpClient>,
     /// cbsk header
     pub header: Arc<Vec<u8>>,
+    /// cbsk write lock
+    lock: parking_lot::Mutex<()>,
 }
 
 /// custom method
@@ -56,7 +59,7 @@ impl CbskClient {
         let header = cb.header.clone();
         cb.log_head = conf.log_head.clone();
         let tcp_client = TcpClient::new_with_buf_len(conf.clone(), buf_len, cb).into();
-        Self { tcp_client, header }
+        Self { tcp_client, header, lock: parking_lot::Mutex::new(()) }
     }
 
     /// get default tcp config
@@ -104,8 +107,13 @@ impl CbskWriteTrait for CbskClient {
         self.tcp_client.get_log_head()
     }
 
+    /// try send bytes to cbsk<br />
+    /// note that this operation will block the thread until the data is sent out
     fn try_send_bytes(&self, bytes: Vec<u8>) -> cbsk_base::anyhow::Result<()> {
+        let lock = self.lock.lock();
         let frame = crate::business::frame(bytes, self.header.as_ref());
-        self.tcp_client.try_send_bytes(frame.as_slice())
+        let result = self.tcp_client.try_send_bytes_no_lock(frame.as_slice());
+        drop(lock);
+        result
     }
 }
