@@ -102,7 +102,7 @@ impl FileSplitActuator {
 
         // write success, add bytes len to now size
         self.now_size.set(self.now_size.saturating_add(bytes.len()));
-        self.now_cache_size.set(self.cache_size.saturating_add(bytes.len()));
+        self.now_cache_size.set(self.now_cache_size.saturating_add(bytes.len()));
 
         // check if the file needs to be reopened
         if self.cache_size < *self.now_cache_size { return; }
