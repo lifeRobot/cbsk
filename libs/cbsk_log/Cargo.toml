@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_log"
-version = "1.3.6"
+version = "1.3.7"
 edition = "2021"
 description = "cbsk_log is a log tool"
 readme = "Readme.md"

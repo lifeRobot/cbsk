@@ -25,6 +25,9 @@ pub struct FileSplitActuator {
     now_size: MutDataObj<usize>,
     /// now cache size, if now cache size ge cache size, will be re open file
     now_cache_size: MutDataObj<usize>,
+    /// if true, now_cache_size ge cache_size will be re open file<br />
+    /// false, do nothing, default is false
+    pub cache_re_open: bool,
     /// log packer
     pub packer: Arc<Box<dyn Packer>>,
 }
@@ -61,6 +64,7 @@ impl FileSplitActuator {
             cache_size: 512 * 1024,
             now_size: MutDataObj::new(now_size),
             now_cache_size: MutDataObj::new(0),
+            cache_re_open: false,
             packer: Arc::new(Box::new(packer)),
         })
     }
@@ -102,6 +106,8 @@ impl FileSplitActuator {
 
         // write success, add bytes len to now size
         self.now_size.set(self.now_size.saturating_add(bytes.len()));
+
+        if !self.cache_re_open { return; }
         self.now_cache_size.set(self.now_cache_size.saturating_add(bytes.len()));
 
         // check if the file needs to be reopened
