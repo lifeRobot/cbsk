@@ -14,13 +14,17 @@ use crate::packer::Packer;
 /// file split actuator
 pub struct FileSplitActuator {
     /// log file
-    pub file: MutDataObj<File>,
+    file: MutDataObj<File>,
     /// log path
-    pub log_path: Arc<LogPath>,
+    log_path: Arc<LogPath>,
     /// log size
-    pub log_size: usize,
+    log_size: usize,
+    /// write cache size, default is 512KB
+    pub cache_size: usize,
     /// log now size
-    pub now_size: MutDataObj<usize>,
+    now_size: MutDataObj<usize>,
+    /// now cache size, if now cache size ge cache size, will be re open file
+    now_cache_size: MutDataObj<usize>,
     /// log packer
     pub packer: Arc<Box<dyn Packer>>,
 }
@@ -54,7 +58,9 @@ impl FileSplitActuator {
             file: MutDataObj::new(file),
             log_path: log_path.into(),
             log_size: log_size.len(),
+            cache_size: 512 * 1024,
             now_size: MutDataObj::new(now_size),
+            now_cache_size: MutDataObj::new(0),
             packer: Arc::new(Box::new(packer)),
         })
     }
@@ -96,6 +102,15 @@ impl FileSplitActuator {
 
         // write success, add bytes len to now size
         self.now_size.set(self.now_size.saturating_add(bytes.len()));
+        self.now_cache_size.set(self.cache_size.saturating_add(bytes.len()));
+
+        // check if the file needs to be reopened
+        if self.cache_size < *self.now_cache_size { return; }
+        // reopen the file to release system cache
+        if let Ok(file) = jui_file::open_create_file(self.log_path.path.as_path()) {
+            self.file.set(file);
+            self.now_cache_size.set(0);
+        }
     }
 
     /// get log name
@@ -127,6 +142,10 @@ impl FileSplitActuator {
 
         // not exists, create
         if let Ok(file) = jui_file::open_create_file(self.log_path.path.as_path()) {
+            if let Ok(meta) = file.metadata() {
+                self.now_size.set(usize::try_from(meta.len()).unwrap_or_default());
+            }
+            self.now_cache_size.set(0);
             self.file.set(file);
         }
     }
