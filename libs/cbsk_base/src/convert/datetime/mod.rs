@@ -51,7 +51,7 @@ pub trait DateTimeSerialize {
 
     /// get yyyymmddhhmmss format datetime
     fn yyyymmddhhmmss(&self) -> String {
-        format!("{}{}", self.yyyymmdd(), self.hhmmss())
+        format!("{}{:06}", self.yyyymmdd(), self.hhmmss())
     }
 
     /// get yyyy-mm-dd format date
