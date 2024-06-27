@@ -1,3 +1,4 @@
+use std::io;
 use cbsk_base::{anyhow, log};
 use cbsk_base::json::to_json::ToJson;
 use cbsk_base::serde::Serialize;
@@ -24,7 +25,7 @@ pub trait TcpWriteTrait {
     }
 
     /// try send text to TCP
-    fn try_send_text(&self, text: &str) -> anyhow::Result<()> {
+    fn try_send_text(&self, text: &str) -> io::Result<()> {
         self.try_send_bytes(text.as_bytes())
     }
 
@@ -36,7 +37,8 @@ pub trait TcpWriteTrait {
     /// try send json to TCP
     fn try_send_json(&self, json: &(impl Serialize + Sync)) -> anyhow::Result<()> {
         let text = json.to_json()?.to_string();
-        self.try_send_bytes(text.as_bytes())
+        self.try_send_bytes(text.as_bytes())?;
+        Ok(())
     }
 
     /// send bytes to TCP
@@ -45,5 +47,5 @@ pub trait TcpWriteTrait {
     }
 
     /// try send bytes to TCP
-    fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()>;
+    fn try_send_bytes(&self, bytes: &[u8]) -> io::Result<()>;
 }

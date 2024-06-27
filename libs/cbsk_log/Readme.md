@@ -5,8 +5,8 @@ cbsk_log is a log tool, the inspiration for this log writing library comes from 
 Cargo.toml:
 
 ```toml
-cbsk_base = "1.3.4"
-cbsk_log = "1.3.7"
+cbsk_base = "1.3.8"
+cbsk_log = "1.3.8"
 ```
 
 main.rs:
@@ -38,8 +38,8 @@ pub fn main() {
 Cargo.toml:
 
 ```toml
-cbsk_base = "1.3.4"
-cbsk_log = "1.3.7"
+cbsk_base = "1.3.8"
+cbsk_log = "1.3.8"
 ```
 
 main.rs:

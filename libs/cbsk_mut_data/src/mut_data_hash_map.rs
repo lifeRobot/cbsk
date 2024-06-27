@@ -60,6 +60,14 @@ impl<K: Eq + Hash, V> MutDataHashMap<K, V> {
 
 /// custom method
 impl<K, V> MutDataHashMap<K, V> {
+    /// new mut data hash_map, more see [HashMap::new]
+    pub fn new() -> Self { Self::default() }
+
+    /// always use the capacity method after construction, more see [HashMap::with_capacity]
+    pub fn with_capacity(capacity: usize) -> Self {
+        Self { data: MutDataObj::new(HashMap::with_capacity(capacity)) }
+    }
+
     /// clear data<br />
     /// more see [HashMap::clear]
     pub fn clear(&self) {

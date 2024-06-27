@@ -1,3 +1,4 @@
+use std::io;
 use std::io::{ErrorKind, Read, Write};
 use std::net::{Shutdown, SocketAddr, TcpStream};
 use std::sync::Arc;
@@ -74,7 +75,7 @@ impl TcpWriteTrait for TcpServerClient {
 
     /// try send bytes to TCP<br />
     /// note that this operation will block the thread until the data is sent out
-    fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
+    fn try_send_bytes(&self, bytes: &[u8]) -> io::Result<()> {
         let lock = self.lock.lock();
         let result = self.try_send_bytes_no_lock(bytes);
         drop(lock);
@@ -85,7 +86,7 @@ impl TcpWriteTrait for TcpServerClient {
 /// custom method
 impl TcpServerClient {
     /// try send bytes to TCP and not lock
-    pub fn try_send_bytes_no_lock(&self, bytes: &[u8]) -> anyhow::Result<()> {
+    pub fn try_send_bytes_no_lock(&self, bytes: &[u8]) -> io::Result<()> {
         let mut ts = self.tcp_client.as_mut();
 
         ts.write_all(bytes)?;

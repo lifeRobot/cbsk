@@ -54,7 +54,7 @@ impl FileSplitActuator {
         let (log_name_prefix, log_name_suffix) = Self::log_name_split(log_name);
         let log_path = LogPath::new(log_name_prefix, log_name_suffix, log_path, log_dir);
 
-        let file = jui_file::open_create_file(log_path.path.as_path())?;
+        let file = cbsk_file::open_create_file(log_path.path.as_path())?;
         let now_size = usize::try_from(file.metadata()?.len()).unwrap_or_default();
 
         Ok(Self {
@@ -113,7 +113,7 @@ impl FileSplitActuator {
         // check if the file needs to be reopened
         if self.cache_size < *self.now_cache_size { return; }
         // reopen the file to release system cache
-        if let Ok(file) = jui_file::open_create_file(self.log_path.path.as_path()) {
+        if let Ok(file) = cbsk_file::open_create_file(self.log_path.path.as_path()) {
             self.file.set(file);
             self.now_cache_size.set(0);
         }
@@ -147,7 +147,7 @@ impl FileSplitActuator {
         }
 
         // not exists, create
-        if let Ok(file) = jui_file::open_create_file(self.log_path.path.as_path()) {
+        if let Ok(file) = cbsk_file::open_create_file(self.log_path.path.as_path()) {
             if let Ok(meta) = file.metadata() {
                 self.now_size.set(usize::try_from(meta.len()).unwrap_or_default());
             }

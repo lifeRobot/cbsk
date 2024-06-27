@@ -54,10 +54,10 @@ impl ZipPacker {
 
     /// log file try pack
     fn file_try_pack(&self, zip_file: String, log_name: &str, log_file: &Path) -> ZipResult<()> {
-        let file = jui_file::open_create_file(zip_file.as_ref())?;
+        let file = cbsk_file::open_create_file(zip_file.as_ref())?;
         let mut z = zip::ZipWriter::new(file);
         z.start_file(log_name, SimpleFileOptions::default())?;
-        let mut file = jui_file::just_open_file(log_file)?;
+        let mut file = cbsk_file::just_open_file(log_file)?;
         std::io::copy(&mut file, &mut z)?;
         z.finish()?.flush()?;
         std::fs::remove_file(log_file)?;

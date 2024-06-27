@@ -1,3 +1,4 @@
+use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -109,7 +110,7 @@ impl CbskWriteTrait for CbskClient {
 
     /// try send bytes to cbsk<br />
     /// note that this operation will block the thread until the data is sent out
-    fn try_send_bytes(&self, bytes: Vec<u8>) -> cbsk_base::anyhow::Result<()> {
+    fn try_send_bytes(&self, bytes: Vec<u8>) -> io::Result<()> {
         let lock = self.lock.lock();
         let frame = crate::business::frame(bytes, self.header.as_ref());
         let result = self.tcp_client.try_send_bytes_no_lock(frame.as_slice());
