@@ -1,3 +1,4 @@
+use std::io;
 use std::io::Write;
 use std::net::{Shutdown, TcpStream};
 use std::sync::Arc;
@@ -56,9 +57,12 @@ impl<C: TcpClientCallBack> TcpWriteTrait for TcpClient<C> {
         self.conf.log_head.as_str()
     }
 
-    async fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
-        let mut tcp_client = cbsk_base::match_some_return!(self.tcp_client.as_ref().as_ref(),
-            Err(anyhow::anyhow!("try send data to server, but connect to tcp server not yet"))).as_mut();
+    async fn try_send_bytes(&self, bytes: &[u8]) -> io::Result<()> {
+        let mut tcp_client = self.tcp_client.as_ref().as_ref().ok_or_else(||{
+            io::Error::from(io::ErrorKind::NotConnected)
+        })?.as_mut();
+        /*let mut tcp_client = cbsk_base::match_some_return!(self.tcp_client.as_ref().as_ref(),
+            Err(anyhow::anyhow!("try send data to server, but connect to tcp server not yet"))).as_mut();*/
 
         tcp_client.write_all(bytes)?;
         tcp_client.flush()?;

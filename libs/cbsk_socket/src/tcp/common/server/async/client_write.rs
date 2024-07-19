@@ -2,7 +2,6 @@ use std::io;
 use std::io::Write;
 use std::net::{Shutdown, TcpStream};
 use std::sync::Arc;
-use cbsk_base::anyhow;
 use cbsk_base::tokio::io::AsyncWriteExt;
 use cbsk_base::tokio::net::tcp::OwnedWriteHalf;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
@@ -18,7 +17,7 @@ pub enum ClientWrite {
 /// custom method
 impl ClientWrite {
     /// try send byte to tcp server/client
-    pub async fn try_send_bytes(&mut self, bytes: &[u8]) -> anyhow::Result<()> {
+    pub async fn try_send_bytes(&mut self, bytes: &[u8]) -> io::Result<()> {
         match self {
             ClientWrite::Tokio(write) => {
                 write.write_all(bytes).await?;

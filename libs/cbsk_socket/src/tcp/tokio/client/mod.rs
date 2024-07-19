@@ -1,3 +1,4 @@
+use std::io;
 use std::sync::Arc;
 use cbsk_base::{anyhow, log, tokio};
 use cbsk_base::tokio::io::AsyncWriteExt;
@@ -46,9 +47,12 @@ impl TcpWriteTrait for TcpClient {
         self.conf.log_head.as_str()
     }
 
-    async fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
-        let mut write = cbsk_base::match_some_return!(self.write.as_ref().as_ref(),
-            Err(anyhow::anyhow!("try send data to server, but connect to tcp server not yet"))).as_mut();
+    async fn try_send_bytes(&self, bytes: &[u8]) -> io::Result<()> {
+        let mut write = self.write.as_ref().as_ref().as_ref().ok_or_else(|| {
+            io::Error::from(io::ErrorKind::NotConnected)
+        })?.as_mut();
+        /*let mut write = cbsk_base::match_some_return!(self.write.as_ref().as_ref(),
+            Err(anyhow::anyhow!("try send data to server, but connect to tcp server not yet"))).as_mut();*/
 
         write.write_all(bytes).await?;
         write.flush().await?;

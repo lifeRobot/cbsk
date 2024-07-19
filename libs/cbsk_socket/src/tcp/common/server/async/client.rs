@@ -1,6 +1,6 @@
+use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use cbsk_base::anyhow;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::tcp::common::r#async::async_tcp_time_trait::AsyncTcpTimeTrait;
 use crate::tcp::common::r#async::tcp_write_trait::TcpWriteTrait;
@@ -81,7 +81,7 @@ impl TcpWriteTrait for TcpServerClient {
         self.log_head.as_str()
     }
 
-    async fn try_send_bytes(&self, bytes: &[u8]) -> anyhow::Result<()> {
+    async fn try_send_bytes(&self, bytes: &[u8]) -> io::Result<()> {
         self.write.as_mut().try_send_bytes(bytes).await
     }
 }

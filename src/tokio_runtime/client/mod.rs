@@ -1,3 +1,4 @@
+use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
@@ -106,7 +107,7 @@ impl CbskWriteTrait for CbskClient {
         self.tcp_client.get_log_head()
     }
 
-    async fn try_send_bytes(&self, bytes: Vec<u8>) -> cbsk_base::anyhow::Result<()> {
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> io::Result<()> {
         let frame = crate::business::frame(bytes, self.header.as_ref());
         self.tcp_client.try_send_bytes(frame.as_slice()).await
     }

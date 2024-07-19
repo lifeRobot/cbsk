@@ -1,3 +1,4 @@
+use std::io;
 use cbsk_base::{anyhow, log};
 use cbsk_base::json::to_json::ToJson;
 use cbsk_base::serde::Serialize;
@@ -19,7 +20,7 @@ pub trait CbskWriteTrait {
     }
 
     /// try send text to cbsk
-    async fn try_send_text(&self, text: impl Into<String>) -> anyhow::Result<()> {
+    async fn try_send_text(&self, text: impl Into<String>) -> io::Result<()> {
         self.try_send_bytes(text.into().into_bytes()).await
     }
 
@@ -31,7 +32,8 @@ pub trait CbskWriteTrait {
     /// try send json to cbsk
     async fn try_send_json(&self, json: &(impl Serialize + Sync)) -> anyhow::Result<()> {
         let text = json.to_json()?.to_string();
-        self.try_send_bytes(text.into_bytes()).await
+        self.try_send_bytes(text.into_bytes()).await?;
+        Ok(())
     }
 
     /// send bytes to cbsk
@@ -40,5 +42,5 @@ pub trait CbskWriteTrait {
     }
 
     /// try send bytes to cbsk
-    async fn try_send_bytes(&self, bytes: Vec<u8>) -> anyhow::Result<()>;
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> io::Result<()>;
 }
