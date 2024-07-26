@@ -1,6 +1,6 @@
+use std::sync::LazyLock;
 use std::thread;
 use std::time::Duration;
-use cbsk_base::once_cell::sync::Lazy;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::config::Config;
 use crate::runtime::cache::log_cache;
@@ -9,11 +9,11 @@ pub mod cache;
 
 /// global log config
 #[allow(non_upper_case_globals)]
-pub static log_conf: Lazy<MutDataObj<Config>> = Lazy::new(MutDataObj::default);
+pub static log_conf: LazyLock<MutDataObj<Config>> = LazyLock::new(MutDataObj::default);
 
 /// log timer is running
 #[allow(non_upper_case_globals)]
-static running: Lazy<MutDataObj<bool>> = Lazy::new(MutDataObj::default);
+static running: LazyLock<MutDataObj<bool>> = LazyLock::new(MutDataObj::default);
 
 /// log runtime
 #[derive(Default)]

@@ -1,10 +1,10 @@
-use cbsk_base::once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use crossbeam::channel::{Receiver, Sender};
 use crate::model::cbsk_record::CbskRecord;
 
 /// global log cache
 #[allow(non_upper_case_globals)]
-pub static log_cache: Lazy<LogCache> = Lazy::new(LogCache::default);
+pub static log_cache: LazyLock<LogCache> = LazyLock::new(LogCache::default);
 
 pub struct LogCache {
     pub send: Sender<CbskRecord>,

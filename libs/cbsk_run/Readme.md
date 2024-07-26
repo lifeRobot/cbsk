@@ -1,13 +1,17 @@
 cbsk_run is async pool tool  
 the main functions include async pool and signal::run
 
+### support the minimum version of Rust
+
+1.80.0
+
 ### async pool example
 
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "1.3.9" }
-cbsk_run = { version = "1.3.9" }
+cbsk_base = { version = "1.3.10" }
+cbsk_run = { version = "1.3.10" }
 ```
 
 main.rs file :
@@ -44,8 +48,8 @@ async fn main() {
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "1.3.9" }
-cbsk_run = { version = "1.3.9" }
+cbsk_base = { version = "1.3.10" }
+cbsk_run = { version = "1.3.10" }
 ```
 
 main.rs file :

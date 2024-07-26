@@ -1,6 +1,6 @@
 use std::future::Future;
+use std::sync::LazyLock;
 use std::time::Duration;
-use cbsk_base::once_cell::sync::Lazy;
 use cbsk_base::tokio;
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
@@ -10,11 +10,11 @@ mod async_state;
 
 /// global async pool
 #[allow(non_upper_case_globals)]
-pub static async_pool: Lazy<MutDataVec<JoinHandle<()>>> = Lazy::new(MutDataVec::default);
+pub static async_pool: LazyLock<MutDataVec<JoinHandle<()>>> = LazyLock::new(MutDataVec::default);
 
 /// global async pool state
 #[allow(non_upper_case_globals)]
-static async_pool_state: Lazy<MutDataObj<async_state::AsyncState>> = Lazy::new(MutDataObj::default);
+static async_pool_state: LazyLock<MutDataObj<async_state::AsyncState>> = LazyLock::new(MutDataObj::default);
 
 /// push async runtime
 pub fn push<F: Future<Output=()> + Send + 'static>(f: F) {

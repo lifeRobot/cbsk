@@ -1,20 +1,17 @@
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use std::thread;
 use std::time::Duration;
 #[cfg(feature = "debug_mode")]
 use cbsk_base::log;
-use cbsk_base::once_cell::sync::Lazy;
 use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
 use crate::pool::Pool;
 use crate::timer::once::Once;
 use crate::timer::timer_run::TimerRun;
 
-// mod runtime_loop;
-
 /// global runtime
 #[allow(non_upper_case_globals)]
-pub static runtime: Lazy<Runtime> = Lazy::new(Runtime::default);
+pub static runtime: LazyLock<Runtime> = LazyLock::new(Runtime::default);
 
 /// global runtime
 pub struct Runtime {

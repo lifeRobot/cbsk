@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_log"
-version = "1.3.9"
+version = "1.3.10"
 edition = "2021"
 description = "cbsk_log is a log tool"
 readme = "Readme.md"
@@ -12,16 +12,16 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
 [dependencies]
 crossbeam = "0.8.4"
 # currently only supports zip compression
-zip = { version = "2.1.3", default-features = false, features = ["deflate"] }
+zip = { version = "2.1.5", default-features = false, features = ["deflate"] }
 
-#cbsk_base = { path = "../cbsk_base", features = ["once_cell", "log", "fastdate", "macro"] }
+#cbsk_base = { path = "../cbsk_base", features = ["log", "fastdate", "macro"] }
 #cbsk_file = { path = "../../../cbsk/libs/cbsk_file" }
 #cbsk_mut_data = { path = "../cbsk_mut_data", default-features = false, features = ["vec"] }
 #cbsk_timer = { path = "../cbsk_timer" }
-cbsk_base = { version = "1.3.9", features = ["once_cell", "log", "fastdate"] }
-cbsk_file = { version = "1.3.9" }
-cbsk_mut_data = { version = "1.3.9", default-features = false, features = ["vec"] }
-cbsk_timer = { version = "1.3.9" }
+cbsk_base = { version = "1.3.10", features = ["log", "fastdate", "macro"] }
+cbsk_file = { version = "1.3.10" }
+cbsk_mut_data = { version = "1.3.10", default-features = false, features = ["vec"] }
+cbsk_timer = { version = "1.3.10" }
 
 [features]
 default = ["dir_pack"]

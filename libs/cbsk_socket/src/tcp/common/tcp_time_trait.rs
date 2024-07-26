@@ -1,4 +1,4 @@
-use fastdate::DateTime;
+use cbsk_base::fastdate::DateTime;
 
 /// TCP time control related trait
 pub trait TcpTimeTrait {

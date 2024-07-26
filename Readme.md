@@ -1,6 +1,10 @@
 cbsk is a TCP data callback tool that allows you to focus on your business processing without having to worry about TCP
 data read, write, and split
 
+### support the minimum version of Rust
+
+1.80.0
+
 ### internal protocol
 
 cbsk has a custom TCP data verification protocol internally, and the protocol logic is as follows:
@@ -22,8 +26,8 @@ cbsk has a custom TCP data verification protocol internally, and the protocol lo
 Cargo.toml:
 
 ```toml
-cbsk_base = { version = "1.3.9", default-features = false, features = ["once_cell"] }
-cbsk = { version = "1.3.9", features = ["server_tokio"] }
+cbsk_base = { version = "1.3.10", default-features = false, features = ["once_cell"] }
+cbsk = { version = "1.3.10", features = ["server_tokio"] }
 ```
 
 main.rs:

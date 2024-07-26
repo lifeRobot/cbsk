@@ -1,12 +1,17 @@
-cbsk_log is a log tool, the inspiration for this log writing library comes from [fast_log](https://crates.io/crates/fast_log)
+cbsk_log is a log tool, the inspiration for this log writing library comes
+from [fast_log](https://crates.io/crates/fast_log)
+
+### support the minimum version of Rust
+
+1.80.0
 
 ### file split example
 
 Cargo.toml:
 
 ```toml
-cbsk_base = "1.3.9"
-cbsk_log = "1.3.9"
+cbsk_base = "1.3.10"
+cbsk_log = "1.3.10"
 ```
 
 main.rs:
@@ -38,8 +43,8 @@ pub fn main() {
 Cargo.toml:
 
 ```toml
-cbsk_base = "1.3.9"
-cbsk_log = "1.3.9"
+cbsk_base = "1.3.10"
+cbsk_log = "1.3.10"
 ```
 
 main.rs:
