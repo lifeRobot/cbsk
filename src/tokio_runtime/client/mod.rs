@@ -74,20 +74,14 @@ impl CbskClient {
     /// stop cbsk server connect<br />
     /// will shutdown tcp connection and will not new connection
     pub async fn stop(&self) {
-        #[cfg(feature = "tokio_tcp")]
         self.tcp_client.stop().await;
-        #[cfg(feature = "system_tcp")]
-        self.tcp_client.stop();
     }
 
     /// notify tcp to re connect<br />
     /// will shutdown tcp connection, if [`TcpClientConfig`] reconn is disable<br />
     /// will shutdown and create new tcp connection,if [`TcpClientConfig`] reconn is enable
     pub async fn re_conn(&self) {
-        #[cfg(feature = "tokio_tcp")]
         self.tcp_client.re_conn().await;
-        #[cfg(feature = "system_tcp")]
-        self.tcp_client.re_conn();
     }
 
     /// the last time the data was received
