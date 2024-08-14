@@ -12,7 +12,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
 [dependencies]
 crossbeam = "0.8.4"
 # currently only supports zip compression
-zip = { version = "2.1.5", default-features = false, features = ["deflate"] }
+zip = { version = "2.1.6", default-features = false, features = ["deflate"] }
 
 #cbsk_base = { path = "../cbsk_base", features = ["log", "fastdate", "macro"] }
 #cbsk_file = { path = "../../../cbsk/libs/cbsk_file" }

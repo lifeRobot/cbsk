@@ -1,0 +1,13 @@
+[package]
+name = "cbsk_unique"
+version = "0.1.0"
+edition = "2021"
+description = "unique value generator"
+
+[dependencies]
+sysinfo = { version = "0.31.2", optional = true, default-features = false, features = ["network"] }
+
+[features]
+default = ["snowflake"]
+# Snowflake Algorithm
+snowflake = ["sysinfo"]
