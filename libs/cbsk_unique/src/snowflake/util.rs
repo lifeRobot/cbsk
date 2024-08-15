@@ -1,3 +1,4 @@
+use std::u128;
 use sysinfo::{MacAddr, Networks};
 
 /// get mac addr
@@ -21,7 +22,7 @@ pub fn get_mac_worker() -> u16 {
 }
 
 /// retrieve the MAC worker and convert it to the worker ID in the snowflake algorithm
-pub fn mac_worker_u64() -> u64 {
+pub fn mac_worker_u128() -> u128 {
     let mac = get_mac_worker();
-    u64::from(mac) << 12
+    u128::from(mac) << 12
 }
