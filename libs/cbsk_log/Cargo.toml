@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_log"
-version = "1.3.10"
+version = "1.3.11"
 edition = "2021"
 description = "cbsk_log is a log tool"
 readme = "Readme.md"
@@ -18,10 +18,10 @@ zip = { version = "2.1.6", default-features = false, features = ["deflate"] }
 #cbsk_file = { path = "../../../cbsk/libs/cbsk_file" }
 #cbsk_mut_data = { path = "../cbsk_mut_data", default-features = false, features = ["vec"] }
 #cbsk_timer = { path = "../cbsk_timer" }
-cbsk_base = { version = "1.3.10", features = ["log", "fastdate", "macro"] }
-cbsk_file = { version = "1.3.10" }
-cbsk_mut_data = { version = "1.3.10", default-features = false, features = ["vec"] }
-cbsk_timer = { version = "1.3.10" }
+cbsk_base = { version = "1.3.11", features = ["log", "fastdate", "macro"] }
+cbsk_file = { version = "1.3.11" }
+cbsk_mut_data = { version = "1.3.11", default-features = false, features = ["vec"] }
+cbsk_timer = { version = "1.3.11" }
 
 [features]
 default = ["dir_pack"]

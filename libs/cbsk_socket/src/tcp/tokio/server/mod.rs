@@ -45,30 +45,21 @@ impl TcpServer {
     pub fn start(&self) -> JoinHandle<()> {
         let tcp_server = self.clone();
         tokio::spawn(async move {
-            let mut read_handles = Vec::new();
-
-            if let Err(e) = tcp_server.try_start(&mut read_handles).await {
+            if let Err(e) = tcp_server.try_start().await {
                 log::error!("{} tcp bind [{}] error: {e:?}",tcp_server.conf.log_head,tcp_server.conf.addr);
-            }
-
-            // wait read async
-            for handle in read_handles {
-                if let Err(e) = handle.await {
-                    log::error!("{} read async error: {e:?}",tcp_server.conf.log_head);
-                }
             }
         })
     }
 
     /// try start tcp server
-    async fn try_start(&self, read_handles: &mut Vec<JoinHandle<()>>) -> io::Result<()> {
+    async fn try_start(&self) -> io::Result<()> {
         let listener = TcpListener::bind(self.conf.addr).await?;
         let conf = self.conf.as_ref();
 
         log::info!("{} listener TCP[{}] success",conf.log_head,conf.addr);
         // loop waiting for client to connect
         loop {
-            if let Err(e) = self.try_accept(&listener, read_handles).await {
+            if let Err(e) = self.try_accept(&listener).await {
                 log::error!("{} wait tcp accept error. wait for the next accept in three seconds. error: {:?}",conf.log_head,e);
                 tokio::time::sleep(Duration::from_secs(3)).await;
             }
@@ -76,21 +67,21 @@ impl TcpServer {
     }
 
     /// try accept TCP client and read tcp client data
-    async fn try_accept(&self, listener: &TcpListener, read_handles: &mut Vec<JoinHandle<()>>) -> io::Result<()> {
+    async fn try_accept(&self, listener: &TcpListener) -> io::Result<()> {
         // tcp client come in, stream split to read and write
         let (tcp_stream, addr) = listener.accept().await?;
         let (read, write) = tcp_stream.into_split();
 
         // start read data
         let client = Arc::new(client::TcpServerClient::new(addr, self.conf.as_ref(), write.into()));
-        read_handles.push(self.read_spawn(client.clone(), read));
+        self.read_spawn(client.clone(), read);
         self.cb.conn(client).await;
 
         Ok(())
     }
 
     /// start read async
-    fn read_spawn(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) -> JoinHandle<()> {
+    fn read_spawn(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) {
         let tcp_server = self.clone();
         tokio::spawn(async move {
             let read_headle = tcp_server.try_read_spawn(client.clone(), read);
@@ -104,7 +95,7 @@ impl TcpServer {
             // if TCP read is closed, it is considered that TCP has been closed
             tcp_server.cb.dis_conn(client.clone()).await;
             if tcp_server.conf.log { log::info!("{} tcp client read async closed",client.log_head); }
-        })
+        });
     }
 
     /// try read tcp client data

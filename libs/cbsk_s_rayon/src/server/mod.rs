@@ -78,7 +78,6 @@ impl TcpServer {
         }
         let tc = Arc::new(TcpServerClient::new(addr, self, MutDataObj::new(ts).into()));
         client_timer::TcpServerClientTimer::new(tc.clone()).start();
-        // runtime.tcp_server_client.push(tc.clone());
         #[cfg(feature = "debug_mode")]
         log::info!("{} add to tcp server client",tc.log_head);
         self.cb.conn(tc);

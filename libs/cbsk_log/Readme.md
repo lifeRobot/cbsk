@@ -10,8 +10,8 @@ from [fast_log](https://crates.io/crates/fast_log)
 Cargo.toml:
 
 ```toml
-cbsk_base = "1.3.10"
-cbsk_log = "1.3.10"
+cbsk_base = "1.3.11"
+cbsk_log = "1.3.11"
 ```
 
 main.rs:
@@ -43,8 +43,8 @@ pub fn main() {
 Cargo.toml:
 
 ```toml
-cbsk_base = "1.3.10"
-cbsk_log = "1.3.10"
+cbsk_base = "1.3.11"
+cbsk_log = "1.3.11"
 ```
 
 main.rs:

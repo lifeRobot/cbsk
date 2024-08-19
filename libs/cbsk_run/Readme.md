@@ -5,51 +5,13 @@ the main functions include async pool and signal::run
 
 1.80.0
 
-### async pool example
-
-Cargo.toml file :
-
-```toml
-cbsk_base = { version = "1.3.10" }
-cbsk_run = { version = "1.3.10" }
-```
-
-main.rs file :
-
-```rust
-use std::time::Duration;
-use cbsk_base::tokio;
-
-#[tokio::main]
-async fn main() {
-    // println hello world
-    cbsk_run::async_pool::push(async {
-        loop {
-            println!("hello world");
-            tokio::time::sleep(Duration::from_secs(1)).await;
-        }
-    });
-
-    // println hi
-    cbsk_run::async_pool::push(async {
-        loop {
-            println!("hi!");
-            tokio::time::sleep(Duration::from_secs(2)).await;
-        }
-    });
-
-    // wait for async to end
-    cbsk_run::async_pool::listener().await.unwrap();
-}
-```
-
 ### signal::run example
 
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "1.3.10" }
-cbsk_run = { version = "1.3.10" }
+cbsk_base = { version = "1.3.11" }
+cbsk_run = { version = "1.3.11" }
 ```
 
 main.rs file :
