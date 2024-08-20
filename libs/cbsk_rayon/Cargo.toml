@@ -1,0 +1,7 @@
+[package]
+name = "cbsk_rayon"
+version = "0.1.0"
+edition = "2021"
+description = "callback socket tool by rayon"
+
+[dependencies]

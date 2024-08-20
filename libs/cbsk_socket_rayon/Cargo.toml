@@ -1,0 +1,17 @@
+[package]
+name = "cbsk_socket_rayon"
+version = "0.1.0"
+edition = "2021"
+description = "socket callback tool by rayon"
+
+[dependencies]
+cbsk_base = { version = "1.3.11", features = ["log", "macro", "parking_lot", "anyhow", "serde_derive_json"] }
+cbsk_timer = "1.3.11"
+cbsk_socket = { path = "../cbsk_socket", optional = true }
+
+[features]
+default = ["tcp_client"]
+
+tcp_client = ["cbsk_socket/tcp_client"]
+tcp_server = ["cbsk_socket/tcp_server"]
+debug_mode = []
