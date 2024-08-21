@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket_tokio"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2021"
 description = "socket callback tool by tokio"
 readme = "Readme.md"
