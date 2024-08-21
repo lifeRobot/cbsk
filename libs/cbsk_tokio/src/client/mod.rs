@@ -1,12 +1,12 @@
-use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 use cbsk_base::tokio::task::JoinHandle;
-use cbsk_socket::config::re_conn::SocketReConn;
-use cbsk_socket::tcp::client::config::TcpClientConfig;
-use cbsk_socket::tcp::client::TcpClient;
-use cbsk_socket::tcp::common::r#async::tcp_write_trait::TcpWriteTrait;
+use cbsk_socket_tokio::cbsk_socket::config::re_conn::SocketReConn;
+use cbsk_socket_tokio::cbsk_socket::tcp::client::config::TcpClientConfig;
+use cbsk_socket_tokio::cbsk_socket::tcp::common::time_trait::TimeTrait;
+use cbsk_socket_tokio::tcp::client::TcpClient;
+use cbsk_socket_tokio::tcp::common::tcp_write_trait::TcpWriteTrait;
 use crate::business::cbsk_write_trait::CbskWriteTrait;
 use crate::client::business::CbskClientBusiness;
 use crate::client::callback::CbskClientCallBack;
@@ -61,14 +61,18 @@ impl CbskClient {
     }
 
     /// start cbsk client
-    /// N: TCP read data bytes size at once, usually 1024, If you need to accept big data, please increase this value
-    pub fn start(&self) -> JoinHandle<()> {
-        self.tcp_client.start()
+    pub async fn start(&self) {
+        self.tcp_client.start().await
+    }
+
+    /// start cbsk client in join handle
+    pub fn start_in_handle(&self) -> JoinHandle<()> {
+        self.tcp_client.start_in_handle()
     }
 
     /// get has the cbsk server connection been success
-    pub fn is_connected(&self) -> bool {
-        self.tcp_client.is_connected()
+    pub async fn is_connected(&self) -> bool {
+        self.tcp_client.is_connected().await
     }
 
     /// stop cbsk server connect<br />
@@ -86,7 +90,7 @@ impl CbskClient {
 
     /// the last time the data was received
     pub fn get_recv_time(&self) -> i64 {
-        **self.tcp_client.recv_time
+        self.tcp_client.get_recv_time()
     }
 
     /// get tcp config
@@ -101,8 +105,8 @@ impl CbskWriteTrait for CbskClient {
         self.tcp_client.get_log_head()
     }
 
-    async fn try_send_bytes(&self, bytes: Vec<u8>) -> io::Result<()> {
-        let frame = crate::business::frame(bytes, self.header.as_ref());
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> std::io::Result<()> {
+        let frame = cbsk::business::frame(bytes, self.header.as_ref());
         self.tcp_client.try_send_bytes(frame.as_slice()).await
     }
 }

@@ -5,7 +5,7 @@ use cbsk_base::serde::Serialize;
 
 macro_rules! send_cbsk_log {
     ($result:expr,$log_head:expr,$name:expr,$data:expr) => {
-        cbsk_socket::send_log!($result,$log_head,$name,$data,"cbsk")
+        cbsk_socket_tokio::send_log!($result,$log_head,$name,$data,"cbsk")
     };
 }
 

@@ -27,7 +27,7 @@ Cargo.toml:
 
 ```toml
 cbsk_base = "2.0.0"
-cbsk_tokio = { version = "2.0.0", default-features = false, features = ["client"] }
+cbsk_rayon = { version = "2.0.0", default-features = false, features = ["client"] }
 fast_log = "1.7.3"
 ```
 
@@ -36,37 +36,41 @@ main.rs:
 ```rust
 use std::net::{IpAddr, SocketAddr};
 use std::sync::LazyLock;
-use cbsk_base::{log, tokio};
+use std::thread;
+use std::time::Duration;
+use cbsk_base::log;
 use cbsk_base::log::LevelFilter;
-use cbsk_tokio::business::cbsk_write_trait::CbskWriteTrait;
-use cbsk_tokio::client::callback::CbskClientCallBack;
-use cbsk_tokio::client::CbskClient;
+use cbsk_rayon::business::cbsk_write_trait::CbskWriteTrait;
+use cbsk_rayon::client::callback::CbskClientCallBack;
+use cbsk_rayon::client::CbskClient;
 
 #[allow(non_upper_case_globals)]
 static addr: LazyLock<SocketAddr> = LazyLock::new(|| { SocketAddr::new(IpAddr::from([127, 0, 0, 1]), 8080) });
 
 #[allow(non_upper_case_globals)]
-static cbsk_client: LazyLock<CbskClient> = LazyLock::new(|| {
-    CbskClient::new(Cb {}.into(), *addr, 1024)
+pub static cbsk_client: LazyLock<CbskClient> = LazyLock::new(|| {
+   CbskClient::new(Cb {}.into(), *addr, 1024)
 });
 
-#[tokio::main]
-pub async fn main() {
-    fast_log::init(fast_log::config::Config::default().level(LevelFilter::Info).console()).unwrap();
-    cbsk_client.start().await;
+pub fn main() {
+   fast_log::init(fast_log::Config::new().level(LevelFilter::Info).console()).unwrap();
+   cbsk_client.start();
+   loop {
+      thread::sleep(Duration::from_secs(10));
+   }
 }
 
 struct Cb {}
 
 impl CbskClientCallBack for Cb {
-    async fn conn(&self) {
-        cbsk_client.send_bytes(b"hello server".to_vec()).await;
-    }
+   fn conn(&self) {
+      cbsk_client.send_bytes(b"hello server".to_vec());
+   }
 
-    async fn recv(&self, bytes: Vec<u8>) {
-        log::info!("bytes is {bytes:?}");
-        cbsk_client.send_bytes(b"hello server".to_vec()).await;
-    }
+   fn recv(&self, bytes: Vec<u8>) {
+      log::info!("bytes is {:?}",String::from_utf8(bytes));
+      cbsk_client.send_bytes(b"hello server".to_vec());
+   }
 }
 ```
 
@@ -76,7 +80,7 @@ Cargo.toml:
 
 ```toml
 cbsk_base = "2.0.0"
-cbsk_tokio = "2.0.0"
+cbsk_rayon = "2.0.0"
 fast_log = "1.7.3"
 ```
 
@@ -85,27 +89,33 @@ main.rs:
 ```rust
 use std::net::{IpAddr, SocketAddr};
 use std::sync::Arc;
+use std::thread;
+use std::time::Duration;
+use cbsk_base::log;
 use cbsk_base::log::LevelFilter;
-use cbsk_base::{log, tokio};
-use cbsk_tokio::business::cbsk_write_trait::CbskWriteTrait;
-use cbsk_tokio::server::callback::CbskServerCallBack;
-use cbsk_tokio::server::CbskServer;
-use cbsk_tokio::server::client::CbskServerClient;
+use cbsk_rayon::business::cbsk_write_trait::CbskWriteTrait;
+use cbsk_rayon::server::callback::CbskServerCallBack;
+use cbsk_rayon::server::CbskServer;
+use cbsk_rayon::server::client::CbskServerClient;
 
-#[tokio::main]
-pub async fn main() {
+pub fn main() {
     fast_log::init(fast_log::config::Config::default().level(LevelFilter::Info).console()).unwrap();
     let addr = SocketAddr::new(IpAddr::from([127, 0, 0, 1]), 8080);
     let cbsk_server = CbskServer::new(Cb {}.into(), addr, 1024);
-    cbsk_server.start().await;
+    cbsk_server.start();
+
+    loop {
+        thread::sleep(Duration::from_secs(10));
+    }
 }
 
 struct Cb {}
 
 impl CbskServerCallBack for Cb {
-    async fn recv(&self, bytes: Vec<u8>, client: Arc<CbskServerClient>) {
-        log::info!("recv is {bytes:?}");
-        client.send_bytes(b"hello client".to_vec()).await;
+    fn recv(&self, bytes: Vec<u8>, client: Arc<CbskServerClient>) {
+        log::info!("recv client data is {:?}", String::from_utf8(bytes));
+        // thread::sleep(Duration::from_secs(3));
+        client.send_bytes(b"hello client".to_vec());
     }
 }
 ```

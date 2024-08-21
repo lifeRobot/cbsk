@@ -1,11 +1,13 @@
 use std::sync::Arc;
+use cbsk::{business, data};
 use cbsk_base::async_trait::async_trait;
-use cbsk_socket::tcp::client::callback::TcpClientCallBack;
-use crate::{business, data};
-use crate::client::callback::CbskClientCallBack;
+use cbsk_socket_tokio::tcp::server::callback::TcpServerCallBack;
+use cbsk_socket_tokio::tcp::server::client::TcpServerClient;
+use crate::server::callback::CbskServerCallBack;
+use crate::server::client::CbskServerClient;
 
-/// support tcp client callback
-pub struct CbskClientBusiness<C: CbskClientCallBack> {
+/// support tcp server callback
+pub struct CbskServerBusines<C: CbskServerCallBack> {
     /// the cbsk first frame<br />
     /// Used to determine if it is cbsk data
     pub header: Arc<Vec<u8>>,
@@ -14,7 +16,7 @@ pub struct CbskClientBusiness<C: CbskClientCallBack> {
 }
 
 /// custom method
-impl<C: CbskClientCallBack> CbskClientBusiness<C> {
+impl<C: CbskServerCallBack> CbskServerBusines<C> {
     /// new business
     pub fn new(cb: Arc<C>) -> Self {
         Self { cb, header: data::default_header().into() }
@@ -30,27 +32,25 @@ impl<C: CbskClientCallBack> CbskClientBusiness<C> {
     }
 }
 
-/// support tcp client callback
+/// support tcp server callback
 #[async_trait]
-impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusiness<C> {
-    async fn conn(&self) {
-        self.cb.conn().await;
+impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
+    async fn conn(&self, client: Arc<TcpServerClient>) {
+        self.cb.conn(CbskServerClient::new(self.header.clone(), client).into()).await;
     }
 
-    async fn dis_conn(&self) {
-        self.cb.dis_conn().await;
+    async fn dis_conn(&self, client: Arc<TcpServerClient>) {
+        self.cb.dis_conn(CbskServerClient::new(self.header.clone(), client).into()).await;
     }
 
-    async fn re_conn(&self, num: i32) {
-        self.cb.re_conn(num).await
-    }
+    async fn recv(&self, mut bytes: Vec<u8>, client: Arc<TcpServerClient>) -> Vec<u8> {
+        let cbsk_server_client = Arc::new(CbskServerClient::new(self.header.clone(), client));
 
-    async fn recv(&self, mut bytes: Vec<u8>) -> Vec<u8> {
         // TODO can the following code be optimized? There are too many if and loop
         loop {
             let mut verify_data = business::verify(bytes, &self.header);
             if !verify_data.error_frame.is_empty() {
-                self.cb.error_frame(verify_data.error_frame).await;
+                self.cb.error_frame(verify_data.error_frame, cbsk_server_client.clone()).await;
             }
 
             // if has too short frame, wait next tcp read
@@ -64,12 +64,12 @@ impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusiness<C> {
                     let analysis_data = business::analysis(verify_data.data_frame, &self.header);
 
                     if let Some(too_long) = analysis_data.too_long_byte {
-                        self.cb.too_long_frame(too_long).await;
+                        self.cb.too_long_frame(too_long, cbsk_server_client.clone()).await;
                     }
 
                     // analysis success, call cb.recv
                     if !analysis_data.data_frame.is_empty() {
-                        self.cb.recv(analysis_data.data_frame).await;
+                        self.cb.recv(analysis_data.data_frame, cbsk_server_client.clone()).await;
                     }
 
                     // if has next verify, change verify_data.next_verify_frame and break current loop

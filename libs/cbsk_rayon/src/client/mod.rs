@@ -1,18 +1,17 @@
-use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
-use cbsk_base::parking_lot;
-use cbsk_s_rayon::client::TcpClient;
-use cbsk_socket::config::re_conn::SocketReConn;
-use cbsk_socket::tcp::common::client::config::TcpClientConfig;
-use cbsk_socket::tcp::common::sync::tcp_write_trait::TcpWriteTrait;
-use crate::business::cbsk_write_trait_thread::CbskWriteTrait;
-use crate::business::client_callback_thread::CbskClientCallBack;
-use crate::rayon_runtime::client::business::CbskClientBusines;
+use cbsk_socket_rayon::cbsk_socket::config::re_conn::SocketReConn;
+use cbsk_socket_rayon::cbsk_socket::tcp::client::config::TcpClientConfig;
+use cbsk_socket_rayon::cbsk_socket::tcp::common::time_trait::TimeTrait;
+use cbsk_socket_rayon::tcp::client::TcpClient;
+use cbsk_socket_rayon::tcp::common::tcp_write_trait::TcpWriteTrait;
+use crate::business::cbsk_write_trait::CbskWriteTrait;
+use crate::client::business::CbskClientBusines;
+use crate::client::callback::CbskClientCallBack;
 
-pub mod business;
-
+pub mod callback;
+mod business;
 
 /// cbsk client
 pub struct CbskClient {
@@ -20,8 +19,6 @@ pub struct CbskClient {
     tcp_client: Arc<TcpClient>,
     /// cbsk header
     pub header: Arc<Vec<u8>>,
-    /// cbsk write lock
-    lock: parking_lot::Mutex<()>,
 }
 
 /// custom method
@@ -36,21 +33,21 @@ impl CbskClient {
     /// use tcp client config create cbsk client<br />
     /// buf_len is tcp read data once lengle
     pub fn new_with_tcp_config<C: CbskClientCallBack>(cb: Arc<C>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
-        let cbsk_cb = business::CbskClientBusines::new(cb);
+        let cbsk_cb = CbskClientBusines::new(cb);
         Self::new_with_business(cbsk_cb, conf, buf_len)
     }
 
     /// custom header create cbsk client<br />
     /// buf_len is tcp read data once lengle
     pub fn new_with_header<C: CbskClientCallBack>(cb: Arc<C>, addr: SocketAddr, header: Vec<u8>, buf_len: usize) -> Self {
-        let cbsk_cb = business::CbskClientBusines::new_with_head(cb, header);
+        let cbsk_cb = CbskClientBusines::new_with_head(cb, header);
         Self::new_with_business(cbsk_cb, Self::default_tcp_config(addr).into(), buf_len)
     }
 
     /// htc is an abbreviation for header_tcp_config<br />
     /// buf_len is tcp read data once lengle
     pub fn new_with_htc<C: CbskClientCallBack>(cb: Arc<C>, header: Vec<u8>, conf: Arc<TcpClientConfig>, buf_len: usize) -> Self {
-        let cbsk_cb = business::CbskClientBusines::new_with_head(cb, header);
+        let cbsk_cb = CbskClientBusines::new_with_head(cb, header);
         Self::new_with_business(cbsk_cb, conf, buf_len)
     }
 
@@ -60,7 +57,7 @@ impl CbskClient {
         let header = cb.header.clone();
         cb.log_head = conf.log_head.clone();
         let tcp_client = TcpClient::new_with_buf_len(conf.clone(), buf_len, cb).into();
-        Self { tcp_client, header, lock: parking_lot::Mutex::new(()) }
+        Self { tcp_client, header }
     }
 
     /// get default tcp config
@@ -93,7 +90,7 @@ impl CbskClient {
 
     /// the last time the data was received
     pub fn get_recv_time(&self) -> i64 {
-        **self.tcp_client.recv_time
+        self.tcp_client.get_recv_time()
     }
 
     /// get tcp config
@@ -102,19 +99,13 @@ impl CbskClient {
     }
 }
 
-/// support write data to cbsk
 impl CbskWriteTrait for CbskClient {
     fn get_log_head(&self) -> &str {
         self.tcp_client.get_log_head()
     }
 
-    /// try send bytes to cbsk<br />
-    /// note that this operation will block the thread until the data is sent out
-    fn try_send_bytes(&self, bytes: Vec<u8>) -> io::Result<()> {
-        let lock = self.lock.lock();
-        let frame = crate::business::frame(bytes, self.header.as_ref());
-        let result = self.tcp_client.try_send_bytes_no_lock(frame.as_slice());
-        drop(lock);
-        result
+    fn try_send_bytes(&self, bytes: Vec<u8>) -> std::io::Result<()> {
+        let frame = cbsk::business::frame(bytes, self.header.as_slice());
+        self.tcp_client.try_send_bytes(frame.as_slice())
     }
 }

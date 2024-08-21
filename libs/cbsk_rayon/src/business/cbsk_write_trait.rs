@@ -3,6 +3,7 @@ use cbsk_base::{anyhow, log};
 use cbsk_base::json::to_json::ToJson;
 use cbsk_base::serde::Serialize;
 
+/// send data err print log
 macro_rules! send_cbsk_log {
     ($result:expr,$log_head:expr,$name:expr,$data:expr) => {
         let msg = format!("send {} data [{:?}] to cbsk", $name,$data);

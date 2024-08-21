@@ -1,8 +1,9 @@
 use std::sync::Arc;
-use cbsk_base::async_trait::async_trait;
-use cbsk_socket::tcp::common::server::r#async::callback::TcpServerCallBack;
-use cbsk_socket::tcp::common::server::r#async::client::TcpServerClient;
-use crate::{business, data};
+use cbsk::{business, data};
+#[cfg(feature = "debug_mode")]
+use cbsk_base::log;
+use cbsk_socket_rayon::tcp::server::callback::TcpServerCallBack;
+use cbsk_socket_rayon::tcp::server::client::TcpServerClient;
 use crate::server::callback::CbskServerCallBack;
 use crate::server::client::CbskServerClient;
 
@@ -13,13 +14,15 @@ pub struct CbskServerBusines<C: CbskServerCallBack> {
     pub header: Arc<Vec<u8>>,
     /// business callback
     pub cb: Arc<C>,
+    /// internal log name, used for log printing
+    pub log_head: String,
 }
 
 /// custom method
 impl<C: CbskServerCallBack> CbskServerBusines<C> {
     /// new business
     pub fn new(cb: Arc<C>) -> Self {
-        Self { cb, header: data::default_header().into() }
+        Self { cb, header: data::default_header().into(), log_head: String::new() }
     }
 
     /// new business, custom header frame
@@ -28,29 +31,38 @@ impl<C: CbskServerCallBack> CbskServerBusines<C> {
         if header.is_empty() {
             header = data::default_header()
         }
-        Self { cb, header: header.into() }
+        Self { cb, header: header.into(), log_head: String::new() }
     }
 }
 
 /// support tcp server callback
-#[async_trait]
 impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
-    async fn conn(&self, client: Arc<TcpServerClient>) {
-        self.cb.conn(CbskServerClient::new(self.header.clone(), client).into()).await;
+    fn conn(&self, client: Arc<TcpServerClient>) {
+        self.cb.conn(CbskServerClient::new(self.header.clone(), client).into());
     }
 
-    async fn dis_conn(&self, client: Arc<TcpServerClient>) {
-        self.cb.dis_conn(CbskServerClient::new(self.header.clone(), client).into()).await;
+    fn dis_conn(&self, client: Arc<TcpServerClient>) {
+        self.cb.dis_conn(CbskServerClient::new(self.header.clone(), client).into());
     }
 
-    async fn recv(&self, mut bytes: Vec<u8>, client: Arc<TcpServerClient>) -> Vec<u8> {
+    fn recv(&self, mut bytes: Vec<u8>, client: Arc<TcpServerClient>) -> Vec<u8> {
         let cbsk_server_client = Arc::new(CbskServerClient::new(self.header.clone(), client));
 
         // TODO can the following code be optimized? There are too many if and loop
+        #[cfg(feature = "debug_mode")]
+        log::info!("{} start recv loop", self.log_head);
         loop {
             let mut verify_data = business::verify(bytes, &self.header);
+            #[cfg(feature = "debug_mode")] {
+                log::info!("{} cbsk recv loop", self.log_head);
+                log::info!("{} error_frame len is {}", self.log_head, verify_data.error_frame.len());
+                log::info!("{} too_short_frame len is {}", self.log_head, verify_data.too_short_frame.len());
+                log::info!("{} data_frame len is {}", self.log_head, verify_data.data_frame.len());
+                log::info!("{} next_verify_frame len is {}", self.log_head, verify_data.next_verify_frame.len());
+            }
+
             if !verify_data.error_frame.is_empty() {
-                self.cb.error_frame(verify_data.error_frame, cbsk_server_client.clone()).await;
+                self.cb.error_frame(verify_data.error_frame, cbsk_server_client.clone());
             }
 
             // if has too short frame, wait next tcp read
@@ -64,12 +76,12 @@ impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
                     let analysis_data = business::analysis(verify_data.data_frame, &self.header);
 
                     if let Some(too_long) = analysis_data.too_long_byte {
-                        self.cb.too_long_frame(too_long, cbsk_server_client.clone()).await;
+                        self.cb.too_long_frame(too_long, cbsk_server_client.clone());
                     }
 
                     // analysis success, call cb.recv
                     if !analysis_data.data_frame.is_empty() {
-                        self.cb.recv(analysis_data.data_frame, cbsk_server_client.clone()).await;
+                        self.cb.recv(analysis_data.data_frame, cbsk_server_client.clone());
                     }
 
                     // if has next verify, change verify_data.next_verify_frame and break current loop

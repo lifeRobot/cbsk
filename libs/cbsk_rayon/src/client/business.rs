@@ -1,14 +1,12 @@
 use std::sync::Arc;
+use cbsk::{business, data};
 #[cfg(feature = "debug_mode")]
 use cbsk_base::log;
-use cbsk_s_rayon::server::callback::TcpServerCallBack;
-use cbsk_s_rayon::server::client::TcpServerClient;
-use crate::{business, data};
-use crate::rayon_runtime::server::callback::CbskServerCallBack;
-use crate::rayon_runtime::server::client::CbskServerClient;
+use cbsk_socket_rayon::tcp::client::callback::TcpClientCallBack;
+use crate::client::callback::CbskClientCallBack;
 
-/// support tcp server callback
-pub struct CbskServerBusines<C: CbskServerCallBack> {
+/// support tcp client callback
+pub struct CbskClientBusines<C: CbskClientCallBack> {
     /// the cbsk first frame<br />
     /// Used to determine if it is cbsk data
     pub header: Arc<Vec<u8>>,
@@ -19,7 +17,7 @@ pub struct CbskServerBusines<C: CbskServerCallBack> {
 }
 
 /// custom method
-impl<C: CbskServerCallBack> CbskServerBusines<C> {
+impl<C: CbskClientCallBack> CbskClientBusines<C> {
     /// new business
     pub fn new(cb: Arc<C>) -> Self {
         Self { cb, header: data::default_header().into(), log_head: String::new() }
@@ -35,19 +33,21 @@ impl<C: CbskServerCallBack> CbskServerBusines<C> {
     }
 }
 
-/// support tcp server callback
-impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
-    fn conn(&self, client: Arc<TcpServerClient>) {
-        self.cb.conn(CbskServerClient::new(self.header.clone(), client).into());
+/// support tcp client callback
+impl<C: CbskClientCallBack> TcpClientCallBack for CbskClientBusines<C> {
+    fn conn(&self) {
+        self.cb.conn();
     }
 
-    fn dis_conn(&self, client: Arc<TcpServerClient>) {
-        self.cb.dis_conn(CbskServerClient::new(self.header.clone(), client).into());
+    fn dis_conn(&self) {
+        self.cb.dis_conn();
     }
 
-    fn recv(&self, mut bytes: Vec<u8>, client: Arc<TcpServerClient>) -> Vec<u8> {
-        let cbsk_server_client = Arc::new(CbskServerClient::new(self.header.clone(), client));
+    fn re_conn(&self, num: i32) {
+        self.cb.re_conn(num)
+    }
 
+    fn recv(&self, mut bytes: Vec<u8>) -> Vec<u8> {
         // TODO can the following code be optimized? There are too many if and loop
         #[cfg(feature = "debug_mode")]
         log::info!("{} start recv loop", self.log_head);
@@ -62,7 +62,7 @@ impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
             }
 
             if !verify_data.error_frame.is_empty() {
-                self.cb.error_frame(verify_data.error_frame, cbsk_server_client.clone());
+                self.cb.error_frame(verify_data.error_frame);
             }
 
             // if has too short frame, wait next tcp read
@@ -76,12 +76,12 @@ impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
                     let analysis_data = business::analysis(verify_data.data_frame, &self.header);
 
                     if let Some(too_long) = analysis_data.too_long_byte {
-                        self.cb.too_long_frame(too_long, cbsk_server_client.clone());
+                        self.cb.too_long_frame(too_long);
                     }
 
                     // analysis success, call cb.recv
                     if !analysis_data.data_frame.is_empty() {
-                        self.cb.recv(analysis_data.data_frame, cbsk_server_client.clone());
+                        self.cb.recv(analysis_data.data_frame);
                     }
 
                     // if has next verify, change verify_data.next_verify_frame and break current loop
@@ -109,6 +109,9 @@ impl<C: CbskServerCallBack> TcpServerCallBack for CbskServerBusines<C> {
             // verify logic over, break loop
             break;
         }
+
+        #[cfg(feature = "debug_mode")]
+        log::info!("end recv loop");
 
         // default return empty data
         Vec::new()

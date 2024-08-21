@@ -17,7 +17,7 @@ use [dark-std](https://crates.io/crates/dark-std)([github](github.com/darkrpc/da
 Cargo.toml file :
 
 ```toml
-cbsk_mut_data = "1.3.11"
+cbsk_mut_data = "2.0.0"
 ```
 
 main.rs file :
@@ -83,7 +83,7 @@ Cargo.toml file :
 
 ```toml
 once_cell = "1.19.0"
-cbsk_mut_data = "1.3.11"
+cbsk_mut_data = "2.0.0"
 ```
 
 main.rs file :
@@ -108,7 +108,7 @@ fn main() {
 Cargo.toml file :
 
 ```toml
-cbsk_mut_data = "1.3.11"
+cbsk_mut_data = "2.0.0"
 ```
 
 main.rs file :

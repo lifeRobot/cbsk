@@ -1,7 +1,22 @@
 [package]
 name = "cbsk_rayon"
-version = "0.1.0"
+version = "2.0.0"
 edition = "2021"
 description = "callback socket tool by rayon"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["network-programming"]
+keywords = ["socket", "net", "tcp"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_rayon"
 
 [dependencies]
+cbsk_base = "2.0.0"
+cbsk = { version = "2.0.0" }
+cbsk_socket_rayon = { version = "2.0.0" }
+
+[features]
+default = ["client"]
+client = ["cbsk_socket_rayon/tcp_client"]
+server = ["cbsk_socket_rayon/tcp_server"]
+debug_mode = []

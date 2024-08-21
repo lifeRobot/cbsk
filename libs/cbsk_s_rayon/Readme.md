@@ -1,0 +1,1 @@
+this crates remove to [cbsk_socket_rayon](https://crates.io/crates/cbsk_socket_rayon)

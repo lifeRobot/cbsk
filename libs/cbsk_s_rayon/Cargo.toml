@@ -1,0 +1,13 @@
+[package]
+name = "cbsk_s_rayon"
+version = "2.0.0"
+edition = "2021"
+description = "cbsk_s_rayon is a socket callback tool"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures", "asynchronous"]
+keywords = ["socket", "tcp", "callback", "rayon"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_s_rayon"
+
+[dependencies]

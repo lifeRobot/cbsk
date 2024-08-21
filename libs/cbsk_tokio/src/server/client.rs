@@ -1,9 +1,8 @@
-use std::io;
 use std::net::SocketAddr;
 use std::sync::Arc;
-use cbsk_socket::tcp::common::r#async::tcp_write_trait::TcpWriteTrait;
-use cbsk_socket::tcp::common::server::r#async::client::TcpServerClient;
-use crate::business;
+use cbsk::business;
+use cbsk_socket_tokio::tcp::common::tcp_write_trait::TcpWriteTrait;
+use cbsk_socket_tokio::tcp::server::client::TcpServerClient;
 use crate::business::cbsk_write_trait::CbskWriteTrait;
 
 /// cbsk server client
@@ -22,23 +21,19 @@ impl CbskServerClient {
         Self { header, tcp_server_client }
     }
 
-    /// get internal log name
-    pub fn get_log_head(&self) -> &str {
-        self.tcp_server_client.get_log_head()
-    }
-
     /// get client addr
     pub fn get_addr(&self) -> SocketAddr {
         self.tcp_server_client.addr
     }
 }
 
+/// support cbsk write trait
 impl CbskWriteTrait for CbskServerClient {
     fn get_log_head(&self) -> &str {
         self.tcp_server_client.get_log_head()
     }
 
-    async fn try_send_bytes(&self, bytes: Vec<u8>) -> io::Result<()> {
+    async fn try_send_bytes(&self, bytes: Vec<u8>) -> std::io::Result<()> {
         let frame = business::frame(bytes, self.header.as_slice());
         self.tcp_server_client.try_send_bytes(frame.as_slice()).await
     }
