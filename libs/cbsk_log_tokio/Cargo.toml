@@ -1,0 +1,14 @@
+[package]
+name = "cbsk_log_tokio"
+version = "0.1.0"
+edition = "2021"
+description = "cbsk_log_tokio is a log tool, using tokio as the runtime"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
+
+[dependencies]
+cbsk_base = { version = "2.0.0", features = ["log", "tokio_full", "parking_lot"] }
+cbsk_log = { path = "../cbsk_log" }
