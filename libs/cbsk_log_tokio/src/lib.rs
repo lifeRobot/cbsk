@@ -3,8 +3,17 @@ use cbsk_base::log::{Log, Metadata, Record};
 use cbsk_base::tokio::task::JoinHandle;
 use cbsk_log::config::Config;
 
+#[cfg(feature = "zip")]
+pub use zip;
+pub use cbsk_log;
+#[cfg(feature = "cbsk_file")]
+pub use cbsk_file;
+
 mod receiver;
 mod runtime;
+pub mod packer;
+pub mod actuator;
+pub mod config;
 
 /// cbsk log
 pub struct CbskLog {}

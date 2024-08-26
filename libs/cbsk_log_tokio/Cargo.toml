@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_log_tokio"
-version = "0.1.0"
+version = "2.0.1"
 edition = "2021"
 description = "cbsk_log_tokio is a log tool, using tokio as the runtime"
 readme = "Readme.md"
@@ -10,5 +10,15 @@ categories = ["data-structures"]
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
 
 [dependencies]
-cbsk_base = { version = "2.0.0", features = ["log", "tokio_full", "parking_lot"] }
-cbsk_log = { path = "../cbsk_log" }
+zip = { version = "2.2.0", default-features = false, features = ["deflate"], optional = true }
+
+cbsk_base = { version = "2.0.0", features = ["log", "tokio_full", "parking_lot", "async-trait"] }
+cbsk_file = { version = "2.0.0", optional = true }
+cbsk_log = "2.0.1"
+
+[features]
+default = ["dir_pack"]
+# single file to pack
+log_pack = ["zip", "cbsk_file"]
+# directory loops to pack
+dir_pack = ["zip", "cbsk_file"]

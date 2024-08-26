@@ -10,30 +10,31 @@ from [fast_log](https://crates.io/crates/fast_log)
 Cargo.toml:
 
 ```toml
-cbsk_base = "2.0.0"
-cbsk_log = "2.0.0"
+cbsk_base = "2.0.1"
+cbsk_log_tokio = "2.0.1"
 ```
 
 main.rs:
 
 ```rust
-use cbsk_base::log;
-use cbsk_log::config::Config;
-use cbsk_log::filter::module_filter::ModuleFilter;
-use cbsk_log::model::log_size::LogSize;
-use cbsk_log::packer::zip_packer::ZipPacker;
+use cbsk_base::{log, tokio};
+use cbsk_log_tokio::cbsk_log::config::Config;
+use cbsk_log_tokio::cbsk_log::model::log_size::LogSize;
+use cbsk_log_tokio::config::FileSplitTrait;
+use cbsk_log_tokio::packer::zip_packer::ZipPacker;
 
-pub fn main() {
-    let conf = Config::default()
-        .push_filter(ModuleFilter::default().push("test"))
-        .file_split("/logs/", LogSize::MB(5), ZipPacker::default().pack_end(|pack_name| {
-            println!("pack name is {pack_name}");
-        }));
+#[tokio::main]
+async fn main() {
+    let config = Config::default().file_split("E:\\logs\\", LogSize::KB(5), ZipPacker::pack_end(|zip_path| {
+        Box::pin(async move {
+            println!("{zip_path}");
+        })
+    }));
+    cbsk_log_tokio::init(config).unwrap();
+    for i in 1..10000 {
+        log::info!("hello world, {i}");
+    }
 
-    cbsk_log::init(conf).unwrap();
-    log::info!("hello world");
-
-    // wait log flush
     log::logger().flush();
 }
 ```
@@ -43,26 +44,24 @@ pub fn main() {
 Cargo.toml:
 
 ```toml
-cbsk_base = "2.0.0"
-cbsk_log = "2.0.0"
+cbsk_base = "2.0.1"
+cbsk_log_tokio = "2.0.1"
 ```
 
 main.rs:
 
 ```rust
-use cbsk_base::log;
-use cbsk_log::config::Config;
-use cbsk_log::filter::module_filter::ModuleFilter;
+use cbsk_base::{log, tokio};
+use cbsk_log_tokio::cbsk_log::config::Config;
 
-pub fn main() {
-    let conf = Config::default()
-        .push_filter(ModuleFilter::default().push("test"))
-        .console();
+#[tokio::main]
+async fn main() {
+    cbsk_log_tokio::init(Config::default().console()).unwrap();
+    for i in 1..10000 {
+        log::info!("hello world, {i}");
+    }
 
-    cbsk_log::init(conf).unwrap();
-    log::info!("hello world");
-
-    // wait log flush
     log::logger().flush();
 }
+
 ```

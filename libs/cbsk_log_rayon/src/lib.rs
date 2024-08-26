@@ -2,7 +2,17 @@ use cbsk_base::log;
 use cbsk_base::log::{Log, Metadata, Record};
 use cbsk_log::config::Config;
 
+#[cfg(feature = "zip")]
+pub use zip;
+pub use cbsk_log;
+#[cfg(feature = "cbsk_file")]
+pub use cbsk_file;
+pub use cbsk_timer;
+
 mod runtime;
+pub mod actuator;
+pub mod packer;
+pub mod config;
 
 /// cbsk log
 pub struct CbskLog {}

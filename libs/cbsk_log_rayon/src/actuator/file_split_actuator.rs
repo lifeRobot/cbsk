@@ -3,18 +3,20 @@ use std::io;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicUsize, Ordering};
 use cbsk_base::convert::datetime::DateTimeSerialize;
 use cbsk_base::fastdate::DateTime;
 use cbsk_base::log;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
-use crate::model::log_path::LogPath;
-use crate::model::log_size::LogSize;
+use cbsk_base::parking_lot::RwLock;
+use cbsk_log::actuator::Actuator;
+use cbsk_log::model::log_path::LogPath;
+use cbsk_log::model::log_size::LogSize;
 use crate::packer::Packer;
 
 /// file split actuator
 pub struct FileSplitActuator {
     /// log file
-    file: MutDataObj<File>,
+    file: RwLock<File>,
     /// log path
     log_path: Arc<LogPath>,
     /// log size
@@ -22,9 +24,9 @@ pub struct FileSplitActuator {
     /// write cache size, default is 512KB
     pub cache_size: usize,
     /// log now size
-    now_size: MutDataObj<usize>,
+    now_size: AtomicUsize,
     /// now cache size, if now cache size ge cache size, will be re open file
-    now_cache_size: MutDataObj<usize>,
+    now_cache_size: AtomicUsize,
     /// if true, now_cache_size ge cache_size will be re open file<br />
     /// false, do nothing, default is false
     pub cache_re_open: bool,
@@ -33,7 +35,7 @@ pub struct FileSplitActuator {
 }
 
 /// support actuator
-impl super::Actuator for FileSplitActuator {
+impl Actuator for FileSplitActuator {
     fn exec(&self, record: &str) {
         self.check_file();
         self.write_log(record);
@@ -58,12 +60,12 @@ impl FileSplitActuator {
         let now_size = usize::try_from(file.metadata()?.len()).unwrap_or_default();
 
         Ok(Self {
-            file: MutDataObj::new(file),
+            file: RwLock::new(file),
             log_path: log_path.into(),
             log_size: log_size.len(),
             cache_size: 512 * 1024,
-            now_size: MutDataObj::new(now_size),
-            now_cache_size: MutDataObj::new(0),
+            now_size: AtomicUsize::new(now_size),
+            now_cache_size: AtomicUsize::default(),
             cache_re_open: false,
             packer: Arc::new(Box::new(packer)),
         })
@@ -71,7 +73,7 @@ impl FileSplitActuator {
 
     /// check and split log file
     fn split_log(&self) {
-        if *self.now_size < self.log_size {
+        if self.now_size.load(Ordering::Acquire) < self.log_size {
             return;
         }
 
@@ -86,7 +88,7 @@ impl FileSplitActuator {
         }
 
         // rename success, reset now size
-        self.now_size.set(0);
+        self.now_size.store(0, Ordering::Release);
         let packer = self.packer.clone();
         let log_path = self.log_path.clone();
         cbsk_timer::push_once_with_name("[cbsk_log split file]", move || {
@@ -105,17 +107,19 @@ impl FileSplitActuator {
         }
 
         // write success, add bytes len to now size
-        self.now_size.set(self.now_size.saturating_add(bytes.len()));
+        self.now_size.fetch_add(bytes.len(), Ordering::SeqCst);
+        // self.now_size.set(self.now_size.saturating_add(bytes.len()));
 
         if !self.cache_re_open { return; }
-        self.now_cache_size.set(self.now_cache_size.saturating_add(bytes.len()));
+        self.now_cache_size.fetch_add(bytes.len(), Ordering::SeqCst);
+        // self.now_cache_size.set(self.now_cache_size.saturating_add(bytes.len()));
 
         // check if the file needs to be reopened
-        if self.cache_size < *self.now_cache_size { return; }
+        if self.cache_size < self.now_cache_size.load(Ordering::Acquire) { return; }
         // reopen the file to release system cache
         if let Ok(file) = cbsk_file::open_create_file(self.log_path.path.as_path()) {
-            self.file.set(file);
-            self.now_cache_size.set(0);
+            *self.file.write() = file;
+            self.now_cache_size.store(0, Ordering::Release);
         }
     }
 
@@ -149,16 +153,16 @@ impl FileSplitActuator {
         // not exists, create
         if let Ok(file) = cbsk_file::open_create_file(self.log_path.path.as_path()) {
             if let Ok(meta) = file.metadata() {
-                self.now_size.set(usize::try_from(meta.len()).unwrap_or_default());
+                self.now_size.store(usize::try_from(meta.len()).unwrap_or_default(), Ordering::Release);
             }
-            self.now_cache_size.set(0);
-            self.file.set(file);
+            self.now_cache_size.store(0, Ordering::Release);
+            *self.file.write() = file;
         }
     }
 
     /// try write to file
     fn try_write_flush(&self, bytes: &[u8]) -> io::Result<()> {
-        let mut file = self.file.as_mut();
+        let mut file = self.file.write();
         file.write_all(bytes)?;
         file.flush()
     }

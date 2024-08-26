@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use crate::model::log_path::LogPath;
+use cbsk_log::model::log_path::LogPath;
 
 pub mod zip_packer;
 

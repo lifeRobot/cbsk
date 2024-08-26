@@ -1,18 +1,20 @@
 [package]
 name = "cbsk_log_rayon"
-version = "0.1.0"
+version = "2.0.1"
 edition = "2021"
 
 [dependencies]
 crossbeam = "0.8.4"
+zip = { version = "2.2.0", default-features = false, features = ["deflate"], optional = true }
 
-cbsk_base = { version = "2.0.0", features = ["log"] }
-cbsk_log = { path = "../cbsk_log" }
+cbsk_base = { version = "2.0.0", features = ["log", "parking_lot"] }
+cbsk_file = { version = "2.0.0", optional = true }
+cbsk_log = "2.0.1"
 cbsk_timer = "2.0.0"
 
 [features]
 default = ["dir_pack"]
 # single file to pack
-log_pack = ["cbsk_log/log_pack"]
+log_pack = ["zip", "cbsk_file"]
 # directory loops to pack
-dir_pack = ["cbsk_log/dir_pack"]
+dir_pack = ["zip", "cbsk_file"]

@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_log"
-version = "2.0.0"
+version = "2.0.1"
 edition = "2021"
 description = "cbsk_log is a log tool"
 readme = "Readme.md"
@@ -10,22 +10,7 @@ categories = ["data-structures"]
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
 
 [dependencies]
-crossbeam = "0.8.4"
-# currently only supports zip compression
-zip = { version = "2.1.6", default-features = false, features = ["deflate"] }
-
 #cbsk_base = { path = "../cbsk_base", features = ["log", "fastdate", "macro"] }
-#cbsk_file = { path = "../../../cbsk/libs/cbsk_file" }
 #cbsk_mut_data = { path = "../cbsk_mut_data", default-features = false, features = ["vec"] }
-#cbsk_timer = { path = "../cbsk_timer" }
 cbsk_base = { version = "2.0.0", features = ["log", "fastdate", "macro"] }
-cbsk_file = { version = "2.0.0" }
 cbsk_mut_data = { version = "2.0.0", default-features = false, features = ["vec"] }
-cbsk_timer = { version = "2.0.0" }
-
-[features]
-default = ["dir_pack"]
-# single file to pack
-log_pack = []
-# directory loops to pack
-dir_pack = []

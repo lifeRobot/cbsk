@@ -1,15 +1,10 @@
-use std::io;
 use cbsk_base::log::LevelFilter;
 use cbsk_mut_data::mut_data_vec::MutDataVec;
 use crate::actuator::Actuator;
 use crate::actuator::console_actuator::ConsoleActuator;
-use crate::actuator::file_split_actuator::FileSplitActuator;
 use crate::filter::Filter;
 use crate::format::default_format::DefaultFormat;
 use crate::format::LogFormat;
-use crate::model::cbsk_record::CbskRecord;
-use crate::model::log_size::LogSize;
-use crate::packer::Packer;
 
 /// cbsk log config
 pub struct Config {
@@ -59,17 +54,6 @@ impl Config {
         self
     }
 
-    /// is filter log
-    pub(crate) fn filter(&self, record: &CbskRecord) -> bool {
-        for filter in self.filter.iter() {
-            if filter.filter(record) {
-                return true;
-            }
-        }
-
-        false
-    }
-
     /// set log format
     pub fn format(mut self, format: impl LogFormat + 'static) -> Self {
         self.format = Box::new(format);
@@ -88,18 +72,5 @@ impl Config {
     pub fn console(self) -> Self {
         self.actuators.push(Box::new(ConsoleActuator {}));
         self
-    }
-
-    /// try add output logs in file split
-    pub fn try_file_split(self, log_dir: impl Into<String>, log_size: LogSize, packer: impl Packer + 'static) -> io::Result<Self> {
-        self.actuators.push(Box::new(FileSplitActuator::new(log_dir, log_size, packer)?));
-        Ok(self)
-    }
-
-    /// output logs in file split<br />
-    /// ## Panic
-    /// if create log file fail, will panic
-    pub fn file_split(self, log_dir: impl Into<String>, log_size: LogSize, packer: impl Packer + 'static) -> Self {
-        self.try_file_split(log_dir, log_size, packer).expect("create file split fail")
     }
 }
