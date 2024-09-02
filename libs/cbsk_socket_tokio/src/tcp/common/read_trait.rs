@@ -20,23 +20,40 @@ pub trait ReadTrait: TimeTrait {
     {
         let check_time_out = i64::try_from(read_time_out.as_millis()).unwrap_or(1000) + 1000;
         loop {
-            let now = Self::now();
-            let timeout_diff = now - self.get_timeout_time();
-            let recv_diff = now - self.get_recv_time();
-
             // if read handle is finished, directly assume that tcp has been closed
             if read_handle.is_finished() {
+                log::warn!("[{}]read handle is finished",self.get_log_head());
                 break;
             }
 
-            // it is possible that tokio_runtime::time::timeout has failed, notify read_handle abort, and break loop
-            // at this point, it is directly assumed that TCP has been closed
-            if !self.get_wait_callback() && timeout_diff > check_time_out && recv_diff > check_time_out {
+            // if wait time callback, sleep 1 secs and continue
+            if self.get_wait_callback() {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                continue;
+            }
+
+            // check time
+            let now = Self::now();
+            let timeout_diff = now - self.get_timeout_time();
+            let recv_diff = now - self.get_recv_time();
+            let is_need_abort = timeout_diff > check_time_out && recv_diff > check_time_out;
+            // no need abort, sleep 1 secs and continue
+            if !is_need_abort {
+                tokio::time::sleep(Duration::from_secs(1)).await;
+                continue;
+            }
+
+            // need abort, check is ignore once
+            if !self.get_ignore() {
+                log::warn!("[{}]read timeout,timeout_diff is {timeout_diff},recv_diff is {recv_diff}, check_time_out is {check_time_out}",self.get_log_head());
+                // it is possible that tokio_runtime::time::timeout has failed, notify read_handle abort, and break loop
+                // at this point, it is directly assumed that TCP has been closed
                 read_handle.abort();
                 abort_fn().await;
                 break;
             }
 
+            // ignore once
             tokio::time::sleep(Duration::from_secs(1)).await
         }
     }

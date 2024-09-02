@@ -110,3 +110,31 @@ impl CbskWriteTrait for CbskClient {
         self.tcp_client.try_send_bytes(frame.as_slice()).await
     }
 }
+
+/// support time trait
+impl TimeTrait for CbskClient {
+    fn set_recv_time(&self, time: i64) {
+        self.tcp_client.set_recv_time(time)
+    }
+    fn get_recv_time(&self) -> i64 {
+        self.tcp_client.get_recv_time()
+    }
+    fn set_timeout_time(&self, time: i64) {
+        self.tcp_client.set_timeout_time(time)
+    }
+    fn get_timeout_time(&self) -> i64 {
+        self.tcp_client.get_timeout_time()
+    }
+    fn set_wait_callback(&self, is_wait: bool) {
+        self.tcp_client.set_wait_callback(is_wait)
+    }
+    fn get_wait_callback(&self) -> bool {
+        self.tcp_client.get_wait_callback()
+    }
+    fn set_ignore_once(&self, is_ingore: bool) {
+        self.tcp_client.set_ignore_once(is_ingore)
+    }
+    fn get_ignore(&self) -> bool {
+        self.tcp_client.get_ignore()
+    }
+}

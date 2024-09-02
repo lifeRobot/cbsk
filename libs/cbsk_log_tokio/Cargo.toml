@@ -7,7 +7,7 @@ readme = "Readme.md"
 authors = ["The cbsk developers"]
 license = "MIT/Apache-2.0"
 categories = ["data-structures"]
-repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log_tokio"
 
 [dependencies]
 zip = { version = "2.2.0", default-features = false, features = ["deflate"], optional = true }

@@ -35,6 +35,8 @@ pub struct TcpClient {
     /// because sometimes tokio_runtime:: time:: timeout will fail, causing the CPU to run continuously, a timeout logic has been added<br />
     /// time see [cbsk_base::fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<AtomicI64>,
+    /// is ingore once time check
+    pub ingore_once: Arc<AtomicBool>,
     /// tcp client writer
     write: Arc<RwLock<TcpWrite>>,
     /// is wait callback
@@ -70,22 +72,30 @@ impl ReadTrait for TcpClient {
 ///  support tcp time trait
 impl TimeTrait for TcpClient {
     fn set_recv_time(&self, time: i64) {
-        self.recv_time.store(time, Ordering::Relaxed)
+        self.recv_time.store(time, Ordering::Release)
     }
     fn get_recv_time(&self) -> i64 {
-        self.recv_time.load(Ordering::Relaxed)
+        self.recv_time.load(Ordering::Acquire)
     }
     fn set_timeout_time(&self, time: i64) {
-        self.timeout_time.store(time, Ordering::Relaxed)
+        self.timeout_time.store(time, Ordering::Release)
     }
     fn get_timeout_time(&self) -> i64 {
-        self.timeout_time.load(Ordering::Relaxed)
+        self.timeout_time.load(Ordering::Acquire)
     }
     fn set_wait_callback(&self, is_wait: bool) {
-        self.wait_callback.store(is_wait, Ordering::Relaxed)
+        self.wait_callback.store(is_wait, Ordering::Release)
     }
     fn get_wait_callback(&self) -> bool {
-        self.wait_callback.load(Ordering::Relaxed)
+        self.wait_callback.load(Ordering::Acquire)
+    }
+    fn set_ignore_once(&self, is_ingore: bool) {
+        self.ingore_once.store(is_ingore, Ordering::Release)
+    }
+    fn get_ignore(&self) -> bool {
+        let ingore_once = self.ingore_once.load(Ordering::Acquire);
+        self.set_ignore_once(false);
+        ingore_once
     }
 }
 
@@ -103,6 +113,7 @@ impl TcpClient {
             cb: Arc::new(Box::new(cb)),
             recv_time: AtomicI64::new(Self::now()).into(),
             timeout_time: AtomicI64::new(Self::now()).into(),
+            ingore_once: AtomicBool::default().into(),
             write: Arc::new(RwLock::new(TcpWrite::default())),
             wait_callback: Arc::new(Default::default()),
             buf_len,

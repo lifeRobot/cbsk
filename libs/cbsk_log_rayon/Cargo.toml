@@ -2,6 +2,12 @@
 name = "cbsk_log_rayon"
 version = "2.0.1"
 edition = "2021"
+description = "cbsk_log_rayon is a log tool, using tokio as the runtime"
+readme = "Readme.md"
+authors = ["The cbsk developers"]
+license = "MIT/Apache-2.0"
+categories = ["data-structures"]
+repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log_rayon"
 
 [dependencies]
 crossbeam = "0.8.4"
