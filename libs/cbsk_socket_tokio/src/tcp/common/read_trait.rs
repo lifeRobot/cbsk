@@ -19,6 +19,7 @@ pub trait ReadTrait: TimeTrait {
         R: Future<Output=()>,
     {
         let check_time_out = i64::try_from(read_time_out.as_millis()).unwrap_or(1000) + 1000;
+        let mut ignore_check_now = false;
         loop {
             // if read handle is finished, directly assume that tcp has been closed
             if read_handle.is_finished() {
@@ -39,6 +40,10 @@ pub trait ReadTrait: TimeTrait {
             let is_need_abort = timeout_diff > check_time_out && recv_diff > check_time_out;
             // no need abort, sleep 1 secs and continue
             if !is_need_abort {
+                if ignore_check_now {
+                    ignore_check_now = false;
+                    self.set_ignore_once(false);
+                }
                 tokio::time::sleep(Duration::from_secs(1)).await;
                 continue;
             }
@@ -54,6 +59,7 @@ pub trait ReadTrait: TimeTrait {
             }
 
             // ignore once
+            ignore_check_now = true;
             tokio::time::sleep(Duration::from_secs(1)).await
         }
     }
@@ -76,6 +82,7 @@ pub trait ReadTrait: TimeTrait {
 
         loop {
             let read = read.read(buf.as_mut_slice());
+            log::info!("{} start read",self.get_log_head());
             let len =
                 // the timeout of tokio_runtime may be an issue, which may cause the CPU to idle. It needs to be fixed here
                 match tokio::time::timeout(read_time_out, read).await {
@@ -85,9 +92,9 @@ pub trait ReadTrait: TimeTrait {
                             Err(e) => {
                                 match e.kind() {
                                     ErrorKind::TimedOut | ErrorKind::WouldBlock => {
-                                        // log::info!("{} time out",self.get_log_head());
                                         // set timeout time
                                         self.set_timeout_time_now();
+                                        log::info!("{} time out",self.get_log_head());
                                         // if just timeout, check write is conn
                                         if timeout_fn().await {
                                             // if timeout_fn return true, exit the loop directly
@@ -104,9 +111,9 @@ pub trait ReadTrait: TimeTrait {
                         }
                     }
                     Err(_) => {
-                        // log::info!("{} time out",self.get_log_head());
                         // set timeout time
                         self.set_timeout_time_now();
+                        log::info!("{} time out",self.get_log_head());
                         // if just timeout, check write is conn
                         if timeout_fn().await {
                             // if timeout_fn return true, exit the loop directly
@@ -122,6 +129,7 @@ pub trait ReadTrait: TimeTrait {
 
             // set recv time
             self.set_recv_time_now();
+            log::info!("{} recv time",self.get_log_head());
             // non zero length, execution logic, etc
             // obtain length and print logs
             let buf = &buf[0..len];

@@ -35,8 +35,8 @@ pub struct TcpClient {
     /// because sometimes tokio_runtime:: time:: timeout will fail, causing the CPU to run continuously, a timeout logic has been added<br />
     /// time see [cbsk_base::fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<AtomicI64>,
-    /// is ingore once time check
-    pub ingore_once: Arc<AtomicBool>,
+    /// is ignore once time check
+    pub ignore_once: Arc<AtomicBool>,
     /// tcp client writer
     write: Arc<RwLock<TcpWrite>>,
     /// is wait callback
@@ -89,13 +89,11 @@ impl TimeTrait for TcpClient {
     fn get_wait_callback(&self) -> bool {
         self.wait_callback.load(Ordering::Acquire)
     }
-    fn set_ignore_once(&self, is_ingore: bool) {
-        self.ingore_once.store(is_ingore, Ordering::Release)
+    fn set_ignore_once(&self, is_ignore: bool) {
+        self.ignore_once.store(is_ignore, Ordering::Release)
     }
     fn get_ignore(&self) -> bool {
-        let ingore_once = self.ingore_once.load(Ordering::Acquire);
-        self.set_ignore_once(false);
-        ingore_once
+        self.ignore_once.load(Ordering::Acquire)
     }
 }
 
@@ -113,7 +111,7 @@ impl TcpClient {
             cb: Arc::new(Box::new(cb)),
             recv_time: AtomicI64::new(Self::now()).into(),
             timeout_time: AtomicI64::new(Self::now()).into(),
-            ingore_once: AtomicBool::default().into(),
+            ignore_once: AtomicBool::default().into(),
             write: Arc::new(RwLock::new(TcpWrite::default())),
             wait_callback: Arc::new(Default::default()),
             buf_len,

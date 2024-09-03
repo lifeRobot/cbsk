@@ -131,8 +131,8 @@ impl TimeTrait for CbskClient {
     fn get_wait_callback(&self) -> bool {
         self.tcp_client.get_wait_callback()
     }
-    fn set_ignore_once(&self, is_ingore: bool) {
-        self.tcp_client.set_ignore_once(is_ingore)
+    fn set_ignore_once(&self, is_ignore: bool) {
+        self.tcp_client.set_ignore_once(is_ignore)
     }
     fn get_ignore(&self) -> bool {
         self.tcp_client.get_ignore()

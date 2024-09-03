@@ -21,9 +21,9 @@ pub trait TimeTrait {
     fn get_wait_callback(&self) -> bool;
 
     /// set ignore once time check
-    fn set_ignore_once(&self, is_ingore: bool) {
+    fn set_ignore_once(&self, is_ignore: bool) {
         // default do nothing
-        let _ = is_ingore;
+        let _ = is_ignore;
     }
 
     /// get ignore
