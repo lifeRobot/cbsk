@@ -82,6 +82,7 @@ pub trait ReadTrait: TimeTrait {
 
         loop {
             let read = read.read(buf.as_mut_slice());
+            #[cfg(feature = "debug_mode")]
             log::info!("{} start read",self.get_log_head());
             let len =
                 // the timeout of tokio_runtime may be an issue, which may cause the CPU to idle. It needs to be fixed here
@@ -94,6 +95,7 @@ pub trait ReadTrait: TimeTrait {
                                     ErrorKind::TimedOut | ErrorKind::WouldBlock => {
                                         // set timeout time
                                         self.set_timeout_time_now();
+                                        #[cfg(feature = "debug_mode")]
                                         log::info!("{} time out",self.get_log_head());
                                         // if just timeout, check write is conn
                                         if timeout_fn().await {
@@ -113,6 +115,7 @@ pub trait ReadTrait: TimeTrait {
                     Err(_) => {
                         // set timeout time
                         self.set_timeout_time_now();
+                        #[cfg(feature = "debug_mode")]
                         log::info!("{} time out",self.get_log_head());
                         // if just timeout, check write is conn
                         if timeout_fn().await {
@@ -129,6 +132,7 @@ pub trait ReadTrait: TimeTrait {
 
             // set recv time
             self.set_recv_time_now();
+            #[cfg(feature = "debug_mode")]
             log::info!("{} recv time",self.get_log_head());
             // non zero length, execution logic, etc
             // obtain length and print logs

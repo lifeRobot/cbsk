@@ -73,7 +73,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.7.3"
 cbsk_base = "2.0.2"
-cbsk_socket_tokio = "2.0.2" 
+cbsk_socket_tokio = "2.0.3" 
 ```
 
 main.rs file:
