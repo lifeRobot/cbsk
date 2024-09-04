@@ -1,18 +1,18 @@
-use cbsk_mut_data::mut_data_vec::MutDataVec;
+use cbsk_base::parking_lot::RwLock;
 use crate::model::cbsk_record::CbskRecord;
 
 /// module filter<br />
 /// block logs in this model
 pub struct ModuleFilter {
     /// module list
-    pub modules: MutDataVec<String>,
+    modules: RwLock<Vec<String>>,
 }
 
 /// support default
 impl Default for ModuleFilter {
     fn default() -> Self {
         Self {
-            modules: MutDataVec::with_capacity(1)
+            modules: RwLock::new(Vec::with_capacity(1))
         }
     }
 }
@@ -20,7 +20,7 @@ impl Default for ModuleFilter {
 /// support filter
 impl super::Filter for ModuleFilter {
     fn filter(&self, record: &CbskRecord) -> bool {
-        self.modules.contains(&record.short_module_path().into())
+        self.modules.read().contains(&record.short_module_path().into())
     }
 }
 
@@ -28,13 +28,13 @@ impl super::Filter for ModuleFilter {
 impl ModuleFilter {
     /// push one module filter
     pub fn push(self, module: impl Into<String>) -> Self {
-        self.modules.push(module.into());
+        self.modules.write().push(module.into());
         self
     }
 
     /// append modules filter
     pub fn append(self, mut module_list: Vec<String>) -> Self {
-        self.modules.append(&mut module_list);
+        self.modules.write().append(&mut module_list);
         self
     }
 }

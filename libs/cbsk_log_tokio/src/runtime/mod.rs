@@ -38,7 +38,7 @@ impl LogRuntime {
 
     /// log to actuators
     fn actuators(format_str: &str, config: &Config) {
-        for at in config.actuators.iter() {
+        for at in config.actuators.read().iter() {
             at.exec(format_str);
         }
         running.store(false, Ordering::Release);
@@ -84,7 +84,7 @@ impl LogRuntime {
 
     /// is filter log
     fn filter(record: &CbskRecord, config: &Config) -> bool {
-        for filter in config.filter.iter() {
+        for filter in config.filter.read().iter() {
             if filter.filter(record) {
                 return true;
             }

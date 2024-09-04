@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_tokio"
-version = "2.0.0"
+version = "2.0.2"
 edition = "2021"
 description = "callback socket tool by tokio"
 readme = "Readme.md"
@@ -11,11 +11,11 @@ keywords = ["socket", "net", "tcp"]
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_tokio"
 
 [dependencies]
-cbsk_socket_tokio = { path = "../cbsk_socket_tokio", default-features = false }
+#cbsk_socket_tokio = { path = "../cbsk_socket_tokio", default-features = false }
 
-cbsk_base = "2.0.0"
-cbsk = { version = "2.0.0" }
-# cbsk_socket_tokio = { version = "2.0.0", default-features = false }
+cbsk_base = "2.0.2"
+cbsk = { version = "2.0.2" }
+cbsk_socket_tokio = { version = "2.0.2", default-features = false }
 
 [features]
 default = ["client"]

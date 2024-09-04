@@ -1,5 +1,5 @@
 use cbsk_base::log::LevelFilter;
-use cbsk_mut_data::mut_data_vec::MutDataVec;
+use cbsk_base::parking_lot::RwLock;
 use crate::actuator::Actuator;
 use crate::actuator::console_actuator::ConsoleActuator;
 use crate::filter::Filter;
@@ -11,24 +11,29 @@ pub struct Config {
     /// log level filter
     pub level: LevelFilter,
     /// log actuator
-    pub actuators: MutDataVec<Box<dyn Actuator>>,
+    pub actuators: RwLock<Vec<Box<dyn Actuator>>>,
     /// log format
     pub format: Box<dyn LogFormat>,
     /// log filter
-    pub filter: MutDataVec<Box<dyn Filter>>,
+    pub filter: RwLock<Vec<Box<dyn Filter>>>,
     /// log max refresh items, min and default is 100<br />
     /// if the number of log cache entries is greater than max_refresh, each time max_refresh entries are obtained and given to actuator for processing
     pub max_refresh: usize,
 }
+
+/// support sync
+unsafe impl Sync for Config {}
+/// support send
+unsafe impl Send for Config {}
 
 /// support default
 impl Default for Config {
     fn default() -> Self {
         Self {
             level: LevelFilter::Info,
-            actuators: MutDataVec::with_capacity(1),
+            actuators: RwLock::new(Vec::with_capacity(1)),
             format: Box::new(DefaultFormat::default()),
-            filter: MutDataVec::with_capacity(1),
+            filter: RwLock::new(Vec::with_capacity(1)),
             max_refresh: 100,
         }
     }
@@ -44,13 +49,13 @@ impl Config {
 
     /// push log filter
     pub fn push_filter(self, filter: impl Filter + 'static) -> Self {
-        self.filter.push(Box::new(filter));
+        self.filter.write().push(Box::new(filter));
         self
     }
 
     /// append log filters
     pub fn append_filter(self, mut filter_list: Vec<Box<dyn Filter>>) -> Self {
-        self.filter.append(&mut filter_list);
+        self.filter.write().append(&mut filter_list);
         self
     }
 
@@ -70,7 +75,7 @@ impl Config {
 
     /// output logs in the console
     pub fn console(self) -> Self {
-        self.actuators.push(Box::new(ConsoleActuator {}));
+        self.actuators.write().push(Box::new(ConsoleActuator {}));
         self
     }
 }

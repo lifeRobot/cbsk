@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_run"
-version = "2.0.0"
+version = "2.0.2"
 edition = "2021"
 description = "cbsk_run is async pool tool"
 readme = "Readme.md"
@@ -13,4 +13,4 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_run"
 
 [dependencies]
 #cbsk_base = { path = "../cbsk_base", optional = true }
-cbsk_base = { version = "2.0.0", features = ["tokio_full", "anyhow", "log"] }
+cbsk_base = { version = "2.0.2", features = ["tokio_full", "anyhow", "log"] }

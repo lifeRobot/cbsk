@@ -20,7 +20,7 @@ pub trait FileSplitTrait: Sized {
 /// let config support file split trait
 impl FileSplitTrait for Config {
     fn try_file_split(self, log_dir: impl Into<String>, log_size: LogSize, packer: impl Packer + 'static) -> io::Result<Self> {
-        self.actuators.push(Box::new(FileSplitActuator::new(log_dir, log_size, packer)?));
+        self.actuators.write().push(Box::new(FileSplitActuator::new(log_dir, log_size, packer)?));
         Ok(self)
     }
 }

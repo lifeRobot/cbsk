@@ -1,6 +1,6 @@
 [package]
 name = "cbsk"
-version = "2.0.0"
+version = "2.0.2"
 edition = "2021"
 description = "cbsk is a callback socket tool"
 readme = "Readme.md"

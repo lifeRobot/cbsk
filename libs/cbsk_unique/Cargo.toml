@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_unique"
-version = "2.0.0"
+version = "2.0.2"
 edition = "2021"
 description = "unique value generator"
 readme = "Readme.md"
@@ -10,8 +10,8 @@ categories = ["data-structures"]
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_unique"
 
 [dependencies]
-sysinfo = { version = "0.31.2", optional = true, default-features = false, features = ["network"] }
-cbsk_base = { version = "2.0.0", features = ["parking_lot"] }
+sysinfo = { version = "0.31.4", optional = true, default-features = false, features = ["network"] }
+cbsk_base = { version = "2.0.2", features = ["parking_lot"] }
 
 [features]
 default = ["snowflake"]

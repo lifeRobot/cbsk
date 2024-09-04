@@ -36,6 +36,8 @@ pub struct TcpClient {
     /// the tcp last read timeout
     /// time see [cbsk_base::fastdate::DateTime::unix_timestamp_millis]
     pub timeout_time: Arc<AtomicI64>,
+    /// is ignore once time check
+    pub ignore_once: Arc<AtomicBool>,
     /// tcp client
     tcp_client: Arc<RwLock<TcpReadWrite>>,
     /// is wait callback
@@ -53,22 +55,28 @@ pub struct TcpClient {
 /// support tcp time trait
 impl TimeTrait for TcpClient {
     fn set_recv_time(&self, time: i64) {
-        self.recv_time.store(time, Ordering::Relaxed)
+        self.recv_time.store(time, Ordering::Release)
     }
     fn get_recv_time(&self) -> i64 {
-        self.recv_time.load(Ordering::Relaxed)
+        self.recv_time.load(Ordering::Acquire)
     }
     fn set_timeout_time(&self, time: i64) {
-        self.timeout_time.store(time, Ordering::Relaxed)
+        self.timeout_time.store(time, Ordering::Release)
     }
     fn get_timeout_time(&self) -> i64 {
-        self.timeout_time.load(Ordering::Relaxed)
+        self.timeout_time.load(Ordering::Acquire)
     }
     fn set_wait_callback(&self, is_wait: bool) {
-        self.wait_callback.store(is_wait, Ordering::Relaxed)
+        self.wait_callback.store(is_wait, Ordering::Release)
     }
     fn get_wait_callback(&self) -> bool {
-        self.wait_callback.load(Ordering::Relaxed)
+        self.wait_callback.load(Ordering::Acquire)
+    }
+    fn set_ignore_once(&self, is_ignore: bool) {
+        self.ignore_once.store(is_ignore, Ordering::Release)
+    }
+    fn get_ignore(&self) -> bool {
+        self.ignore_once.load(Ordering::Acquire)
     }
 }
 
@@ -139,6 +147,7 @@ impl TcpClient {
             timeout_time: AtomicI64::new(Self::now()).into(),
             tcp_client: Arc::new(RwLock::default()),
             wait_callback: Arc::new(AtomicBool::default()),
+            ignore_once: Arc::new(AtomicBool::default()),
             buf_len,
             buf: RwLock::new(Vec::with_capacity(1)).into(),
             next_buf: RwLock::new(Vec::with_capacity(buf_len)).into(),
@@ -295,6 +304,7 @@ impl TcpClient {
         let timeout_diff = now - self.get_timeout_time();
         let recv_diff = now - self.get_recv_time();
 
+        // nothing ignore now
         if !self.get_wait_callback() && timeout_diff > check_time_out && recv_diff > check_time_out {
             #[cfg(feature = "debug_mode")] {
                 log::info!("{} timeout_diff is {timeout_diff}", self.get_log_head());
