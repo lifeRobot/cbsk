@@ -1,6 +1,5 @@
 use std::net::SocketAddr;
 use std::time::Duration;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::config::re_conn::SocketReConn;
 
 /// tcp client config
@@ -16,7 +15,7 @@ pub struct TcpClientConfig {
     /// tcp read data timeout
     pub read_time_out: Duration,
     /// tcp sockets need to be reconnect
-    pub reconn: MutDataObj<SocketReConn>,
+    pub reconn: SocketReConn,
 }
 
 /// custom method
@@ -32,7 +31,7 @@ impl TcpClientConfig {
             log_head,
             conn_time_out: Duration::from_secs(10),
             read_time_out: Duration::from_secs(1),
-            reconn: MutDataObj::new(reconn),
+            reconn,
         }
     }
 

@@ -1,10 +1,11 @@
+use std::sync::atomic::AtomicBool;
 use std::time::Duration;
 
 /// socket reconnected config
 #[derive(Default)]
 pub struct SocketReConn {
     /// enable reconn
-    pub enable: bool,
+    pub enable: AtomicBool,
     /// reconn wait time
     pub time: Duration,
 }
@@ -14,7 +15,7 @@ pub struct SocketReConn {
 impl SocketReConn {
     /// create socket reconnected config
     pub fn new(enable: bool, time: Duration) -> Self {
-        Self { enable, time }
+        Self { enable: AtomicBool::new(enable), time }
     }
 
     /// create enable socket reconnect config

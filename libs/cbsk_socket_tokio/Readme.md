@@ -23,7 +23,7 @@ Cargo.toml file:
 ```toml
 fast_log = "1.7.3"
 cbsk_base = "2.0.2"
-cbsk_socket_tokio = { version = "2.0.2", default-features = false, features = ["tcp_server"] }
+cbsk_socket_tokio = { version = "2.0.4", default-features = false, features = ["tcp_server"] }
 ```
 
 main.rs file:

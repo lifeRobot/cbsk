@@ -102,7 +102,7 @@ impl TcpClient {
     /// stop tcp server connect<br />
     /// will shutdown tcp connection and will not new connection
     pub fn stop(&self) {
-        self.conf.reconn.as_mut().enable = false;
+        self.conf.reconn.enable.store(false, Ordering::Release);
         self.shutdown();
     }
 
@@ -180,7 +180,7 @@ impl TcpClient {
         }
 
         // not first conn, check is re conn
-        if !self.conf.reconn.enable { return; }
+        if !self.conf.reconn.enable.load(Ordering::Acquire) { return; }
 
         // re conn
         let diff = u128::try_from(Self::now() - state.last_re_time).unwrap_or_default();
@@ -201,7 +201,7 @@ impl TcpClient {
                 Ok(tcp_stream) => { tcp_stream }
                 Err(e) => {
                     log::error!("{} tcp server connect error: {e:?}",self.conf.log_head);
-                    if self.conf.reconn.enable {
+                    if self.conf.reconn.enable.load(Ordering::Acquire) {
                         log::info!("{} tcp service will reconnect in {:?}",self.conf.log_head,self.conf.reconn.time);
                     }
                     return;

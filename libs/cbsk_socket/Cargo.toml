@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket"
-version = "2.0.2"
+version = "2.0.4"
 edition = "2021"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
@@ -14,10 +14,9 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket"
 
 [dependencies]
 cbsk_base = { version = "2.0.2", optional = true }
-cbsk_mut_data = { version = "2.0.2", default-features = false, optional = true }
 
 [features]
 tcp_server = ["cbsk_base/fastdate"]
-tcp_client = ["cbsk_mut_data/obj", "cbsk_base/fastdate"]
+tcp_client = ["cbsk_base/fastdate"]
 ws_server = []
 ws_client = []

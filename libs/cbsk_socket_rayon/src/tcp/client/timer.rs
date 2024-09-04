@@ -42,7 +42,7 @@ impl Timer for TcpClientTimer {
         }
 
         if !tc.is_connected() {
-            if !state.first && !tc.conf.reconn.enable {
+            if !state.first && !tc.conf.reconn.enable.load(Ordering::Acquire) {
                 self.end.store(true, Ordering::Relaxed);
                 return false;
             }

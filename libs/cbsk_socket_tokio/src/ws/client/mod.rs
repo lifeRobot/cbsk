@@ -1,5 +1,6 @@
 use std::io;
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use std::time::Duration;
 use cbsk_base::{anyhow, log, tokio};
 use cbsk_base::tokio::net::TcpStream;
@@ -46,7 +47,7 @@ impl<C: WsClientCallBack> WsClient<C> {
     /// stop websocket server connect<br />
     /// will shutdown tcp connection and will not new connection
     pub async fn stop(&self) {
-        self.conf.reconn.as_mut().enable = false;
+        self.conf.reconn.enable.store(false, Ordering::Release);
         self.shutdown().await;
     }
 
@@ -84,7 +85,7 @@ impl<C: WsClientCallBack> WsClient<C> {
         loop {
             self.conn().await;
 
-            if !self.conf.reconn.enable { break; }
+            if !self.conf.reconn.enable.load(Ordering::Acquire) { break; }
             log::error!("{} websocket server disconnected, preparing for reconnection",self.conf.log_head);
         }
 
@@ -111,7 +112,7 @@ impl<C: WsClientCallBack> WsClient<C> {
                 };
 
             log::error!("{} websocket server connect error: {err:?}",self.conf.log_head);
-            if !self.conf.reconn.enable { return; }
+            if !self.conf.reconn.enable.load(Ordering::Acquire) { return; }
 
             // re conn
             self.cb.re_conn(re_num).await;

@@ -121,7 +121,7 @@ impl TcpClient {
     /// stop tcp server connect<br />
     /// will shutdown tcp connection and will not new connection
     pub async fn stop(&self) {
-        self.conf.reconn.as_mut().enable = false;
+        self.conf.reconn.enable.store(false, Ordering::Release);
         self.shutdown().await;
     }
 
@@ -165,7 +165,7 @@ impl TcpClient {
         loop {
             self.conn().await;
 
-            if !self.conf.reconn.enable { break; }
+            if !self.conf.reconn.enable.load(Ordering::Acquire) { break; }
             log::error!("{} tcp server disconnected, preparing for reconnection",self.conf.log_head);
         }
 
@@ -187,7 +187,7 @@ impl TcpClient {
                 };
 
             log::error!("{} tcp server connect error: {err:?}",self.conf.log_head);
-            if !self.conf.reconn.enable { return; }
+            if !self.conf.reconn.enable.load(Ordering::Acquire) { return; }
 
             // reconn
             self.cb.re_conn(re_num).await;

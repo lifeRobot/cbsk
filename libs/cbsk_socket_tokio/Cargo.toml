@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket_tokio"
-version = "2.0.3"
+version = "2.0.4"
 edition = "2021"
 description = "socket callback tool by tokio"
 readme = "Readme.md"
@@ -15,7 +15,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket_tok
 
 cbsk_base = { version = "2.0.2", features = ["tokio_full", "serde_derive_json", "anyhow", "fastdate", "log"] }
 cbsk_mut_data = { version = "2.0.2", default-features = false, optional = true }
-cbsk_socket = { version = "2.0.2", optional = true }
+cbsk_socket = { version = "2.0.4", optional = true }
 
 # ws crates
 tokio-tungstenite = { version = "0.23.1", optional = true }

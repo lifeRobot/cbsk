@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket_rayon"
-version = "2.0.2"
+version = "2.0.4"
 edition = "2021"
 description = "socket callback tool by rayon"
 readme = "Readme.md"
@@ -15,7 +15,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket_ray
 
 cbsk_base = { version = "2.0.2", features = ["log", "macro", "parking_lot", "anyhow", "serde_derive_json"] }
 cbsk_timer = "2.0.2"
-cbsk_socket = { version = "2.0.2", optional = true }
+cbsk_socket = { version = "2.0.4", optional = true }
 
 [features]
 default = ["tcp_client"]
