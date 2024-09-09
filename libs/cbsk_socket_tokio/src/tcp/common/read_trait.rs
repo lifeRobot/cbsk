@@ -23,6 +23,7 @@ pub trait ReadTrait: TimeTrait {
         loop {
             // if read handle is finished, directly assume that tcp has been closed
             if read_handle.is_finished() {
+                #[cfg(feature = "debug_mode")]
                 log::warn!("[{}]read handle is finished",self.get_log_head());
                 break;
             }
@@ -50,6 +51,7 @@ pub trait ReadTrait: TimeTrait {
 
             // need abort, check is ignore once
             if !self.get_ignore() {
+                #[cfg(feature = "debug_mode")]
                 log::warn!("[{}]read timeout,timeout_diff is {timeout_diff},recv_diff is {recv_diff}, check_time_out is {check_time_out}",self.get_log_head());
                 // it is possible that tokio_runtime::time::timeout has failed, notify read_handle abort, and break loop
                 // at this point, it is directly assumed that TCP has been closed

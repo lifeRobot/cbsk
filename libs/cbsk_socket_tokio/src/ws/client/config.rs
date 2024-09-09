@@ -1,5 +1,4 @@
 use std::time::Duration;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
 use cbsk_socket::config::re_conn::SocketReConn;
 
 /// websocket client config
@@ -16,7 +15,7 @@ pub struct WsClientConfig {
     /// websocket read data timeout
     pub read_time_out: Duration,
     /// websocket sockets need to be reconnect
-    pub(crate) reconn: MutDataObj<SocketReConn>,
+    pub(crate) reconn: SocketReConn,
 }
 
 /// custom method
@@ -32,7 +31,7 @@ impl WsClientConfig {
             log_head,
             conn_time_out: Duration::from_secs(10),
             read_time_out: Duration::from_secs(1),
-            reconn: MutDataObj::new(reconn),
+            reconn: reconn,
         }
     }
 
