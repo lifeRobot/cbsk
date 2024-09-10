@@ -7,10 +7,10 @@ cbsk_base also supports some custom trait, like ToJson,FromJson and some macro
 | name                                                        | git                                                 | version |  
 |-------------------------------------------------------------|-----------------------------------------------------|---------|
 | [tokio](https://crates.io/crates/tokio)                     | [github](https://github.com/tokio-rs/tokio)         | 1.40.0  |
-| [anyhow](https://crates.io/crates/anyhow)                   | [github](https://github.com/dtolnay/anyhow)         | 1.0.86  |
+| [anyhow](https://crates.io/crates/anyhow)                   | [github](https://github.com/dtolnay/anyhow)         | 1.0.87  |
 | [once_cell](https://crates.io/crates/once_cell)             | [github](https://github.com/matklad/once_cell)      | 1.19.0  |
-| [serde](https://crates.io/crates/serde)                     | [github](https://github.com/serde-rs/serde)         | 1.0.209 |
-| [serde_json](https://crates.io/crates/serde_json)           | [github](https://github.com/serde-rs/json)          | 1.0.127 |
+| [serde](https://crates.io/crates/serde)                     | [github](https://github.com/serde-rs/serde)         | 1.0.210 |
+| [serde_json](https://crates.io/crates/serde_json)           | [github](https://github.com/serde-rs/json)          | 1.0.128 |
 | [log](https://crates.io/crates/log)                         | [github](https://github.com/rust-lang/log)          | 0.4.22  |
 | [async-trait](https://crates.io/crates/async-trait)         | [github](https://github.com/dtolnay/async-trait)    | 0.1.82  |
 | [async-recursion](https://crates.io/crates/async-recursion) | [github](https://github.com/dcchut/async-recursion) | 1.1.1   |
@@ -26,7 +26,7 @@ the struct impl Deserialize, will auto impl FromJson
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "2.0.2", features = ["serde_derive_json"] }
+cbsk_base = { version = "2.0.3", features = ["serde_derive_json"] }
 ```
 
 main.rs file :
@@ -57,7 +57,7 @@ fn main() {
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "2.0.2", features = ["macro", "anyhow"] }
+cbsk_base = { version = "2.0.3", features = ["macro", "anyhow"] }
 ```
 
 main.rs file :
@@ -98,7 +98,7 @@ fn exec_option() {
 Cargo.toml file:
 
 ```toml
-cbsk_base = { version = "2.0.2", features = ["root_path"] }
+cbsk_base = { version = "2.0.3", features = ["root_path"] }
 ```
 
 main.rs file:
