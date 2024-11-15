@@ -1,7 +1,7 @@
+use std::sync::atomic::Ordering;
 use std::time::Duration;
 #[cfg(feature = "debug_mode")]
 use cbsk_base::log;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
 use crate::timer::once::Once;
 use crate::timer::simple_timer::SimpleTimer;
 use crate::timer::Timer;
@@ -26,14 +26,15 @@ pub fn push_once(task: impl FnOnce() + Send + 'static) {
 /// please do not use dead loops in tasks
 pub fn push_once_with_name(name: impl Into<String>, task: impl FnOnce() + Send + 'static) {
     let once = Once::new(name, task);
+    let mut once_write = runtime::runtime.once.write();
     #[cfg(feature = "debug_mode")]{
         log::info!("push once {}", once.name);
-        log::info!("before once num {}",runtime::runtime.once.len());
+        log::info!("before once num {}",once_write.len());
     }
-    runtime::runtime.once.push(once);
+    once_write.push(once);
     #[cfg(feature = "debug_mode")]{
-        log::info!("after once num {}",runtime::runtime.once.len());
-        if let Some(last) = runtime::runtime.once.last() {
+        log::info!("after once num {}",once_write.len());
+        if let Some(last) = once_write.last() {
             log::info!("last once is {}",last.name);
         }
     }
@@ -45,7 +46,7 @@ pub fn push_once_with_name(name: impl Into<String>, task: impl FnOnce() + Send +
 pub fn push_timer(timer: impl Timer) {
     #[cfg(feature = "debug_mode")]
     log::info!("push timer {}",timer.name());
-    runtime::runtime.timer.push(MutDataObj::new(TimerRun::new(timer)).into())
+    runtime::runtime.timer.write().push(TimerRun::new(timer).into())
 }
 
 /// push interval task<br />
@@ -56,14 +57,16 @@ pub fn push_task(name: impl Into<String>, interval: Duration, task: impl Fn(&Sim
 
 /// set number of thread pools
 pub fn set_thread_pool_num(thread_pool_num: usize) {
-    runtime::runtime.pool.thread_pool_num.set(thread_pool_num)
+    runtime::runtime.pool.thread_pool_num.store(thread_pool_num, Ordering::Release)
 }
 
 /// get tasks num
 pub fn tasks_num() -> usize {
+    let once_len = runtime::runtime.once.read().len();
+    let timer_len = runtime::runtime.timer.read().len();
     #[cfg(feature = "debug_mode")] {
-        log::info!("timer len is {}",runtime::runtime.timer.len());
-        log::info!("once len is {}",runtime::runtime.once.len());
+        log::info!("timer len is {once_len}");
+        log::info!("once len is {timer_len}");
     }
-    runtime::runtime.once.len() + runtime::runtime.timer.len()
+    once_len + timer_len
 }

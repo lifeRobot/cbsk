@@ -1,6 +1,6 @@
+use std::sync::atomic::{AtomicUsize, Ordering};
 use cbsk_base::log;
-use cbsk_mut_data::mut_data_obj::MutDataObj;
-use cbsk_mut_data::mut_data_vec::MutDataVec;
+use cbsk_base::parking_lot::RwLock;
 use crate::pool::pool_detail::PoolDetail;
 
 pub mod pool_detail;
@@ -8,20 +8,20 @@ pub mod pool_detail;
 /// thread pool
 pub struct Pool {
     /// thread pool
-    pub thread_pool: MutDataVec<PoolDetail>,
+    pub thread_pool: RwLock<Vec<PoolDetail>>,
     /// number of thread pools, default is 100<br />
     /// each thread pool has ten threads, so the maximum number of threads is 10 * thread_pool_num
-    pub thread_pool_num: MutDataObj<usize>,
+    pub thread_pool_num: AtomicUsize,
 }
 
 /// support default
 impl Default for Pool {
     fn default() -> Self {
-        let thread_pool = MutDataVec::with_capacity(2);
+        let mut thread_pool = Vec::with_capacity(2);
         thread_pool.push(PoolDetail::build());
         Self {
-            thread_pool,
-            thread_pool_num: MutDataObj::new(100),
+            thread_pool: thread_pool.into(),
+            thread_pool_num: AtomicUsize::new(100),
         }
     }
 }
@@ -32,7 +32,8 @@ impl Pool {
     /// will not detect if threads are idle<br />
     /// if immediate operation is required, please call [Self::is_idle] first to determine if the thread pool is idle
     pub fn spawn(&self, f: impl FnOnce() + Send + 'static) {
-        for pool in self.thread_pool.iter() {
+        let mut thread_pool = self.thread_pool.write();
+        for pool in thread_pool.iter() {
             if pool.is_idle() {
                 pool.spawn(f);
                 return;
@@ -49,14 +50,15 @@ impl Pool {
                 }
             };
         pool.spawn(f);
-        self.thread_pool.push(pool);
+        thread_pool.push(pool);
     }
 
     /// is there any idle thread in the thread pool
     pub fn is_idle(&self) -> bool {
-        if self.thread_pool.len() < *self.thread_pool_num {
+        let thread_pool = self.thread_pool.read();
+        if thread_pool.len() < self.thread_pool_num.load(Ordering::Acquire) {
             return true;
         }
-        cbsk_base::match_some_return!(self.thread_pool.last(),false).is_idle()
+        cbsk_base::match_some_return!(thread_pool.last(),false).is_idle()
     }
 }

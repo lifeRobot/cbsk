@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_timer"
-version = "2.0.2"
+version = "2.0.6"
 edition = "2021"
 description = "cbsk_timer is a rayon thread runtime"
 readme = "Readme.md"
@@ -11,10 +11,8 @@ keywords = ["rayon", "runtime", "timer"]
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_timer"
 
 [dependencies]
-#cbsk_base = { path = "../cbsk_base", features = ["log", "macro", "fastdate"] }
-#cbsk_mut_data = { path = "../cbsk_mut_data", default-features = false, features = ["vec"] }
-cbsk_base = { version = "2.0.2", features = ["log", "macro", "fastdate"] }
-cbsk_mut_data = { version = "2.0.2", default-features = false, features = ["vec"] }
+#cbsk_base = { path = "../cbsk_base", features = ["log", "macro", "fastdate", "parking_lot"] }
+cbsk_base = { version = "2.0.6", features = ["log", "macro", "fastdate"] }
 rayon = "1.10.0"
 
 [features]

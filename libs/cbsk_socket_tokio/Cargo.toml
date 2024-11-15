@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_socket_tokio"
-version = "2.0.5"
+version = "2.0.6"
 edition = "2021"
 description = "socket callback tool by tokio"
 readme = "Readme.md"
@@ -11,14 +11,15 @@ keywords = ["tcp", "ws", "websocket", "callback"]
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket_tokio"
 
 [dependencies]
+#cbsk_base = { path = "../cbsk_base", features = ["tokio_full", "serde_derive_json", "anyhow", "fastdate", "log"] }
 #cbsk_socket = { path = "../cbsk_socket", optional = true }
 
-cbsk_base = { version = "2.0.2", features = ["tokio_full", "serde_derive_json", "anyhow", "fastdate", "log"] }
-cbsk_socket = { version = "2.0.4", optional = true }
+cbsk_base = { version = "2.0.6", features = ["tokio_full", "serde_derive_json", "anyhow", "fastdate", "log"] }
+cbsk_socket = { version = "2.0.6", optional = true }
 
 # ws crates
-tokio-tungstenite = { version = "0.23.1", optional = true }
-futures-util = { version = "0.3.30", default-features = false, optional = true }
+tokio-tungstenite = { version = "0.24.0", optional = true }
+futures-util = { version = "0.3.31", default-features = false, optional = true }
 
 [features]
 default = ["tcp_client"]
