@@ -19,9 +19,9 @@ Rust 1.80.0
 Cargo.toml file:
 
 ```toml
-fast_log = "1.7.5"
-cbsk_base = "2.0.6"
-cbsk_socket_rayon = { version = "2.0.6", default-features = false, features = ["tcp_server"] }
+fast_log = "1.7.6"
+cbsk_base = "2.1.0"
+cbsk_socket_rayon = { version = "2.1.0", default-features = false, features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -72,9 +72,9 @@ impl TcpServerCallBack for Cb {
 Cargo.toml file:
 
 ```toml
-fast_log = "1.7.5"
-cbsk_base = "2.0.6"
-cbsk_socket_rayon = "2.0.6" 
+fast_log = "1.7.6"
+cbsk_base = "2.1.0"
+cbsk_socket_rayon = "2.1.0" 
 ```
 
 main.rs file:

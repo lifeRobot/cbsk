@@ -6,8 +6,8 @@ from [fast_log](https://crates.io/crates/fast_log)
 Cargo.toml:
 
 ```toml
-cbsk_base = "2.0.2"
-cbsk_log_rayon = "2.0.2"
+cbsk_base = "2.1.0"
+cbsk_log_rayon = "2.1.0"
 ```
 
 main.rs:
@@ -37,8 +37,8 @@ fn main() {
 Cargo.toml:
 
 ```toml
-cbsk_base = "2.0.2"
-cbsk_log_rayon = "2.0.2"
+cbsk_base = "2.1.0"
+cbsk_log_rayon = "2.1.0"
 ```
 
 main.rs:

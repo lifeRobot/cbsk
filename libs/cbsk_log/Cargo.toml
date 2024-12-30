@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_log"
-version = "2.0.6"
+version = "2.1.0"
 edition = "2021"
 description = "cbsk_log is a log tool"
 readme = "Readme.md"
@@ -11,4 +11,4 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log"
 
 [dependencies]
 #cbsk_base = { path = "../cbsk_base", features = ["log", "fastdate", "macro", "parking_lot"] }
-cbsk_base = { version = "2.0.6", features = ["log", "fastdate", "macro", "parking_lot"] }
+cbsk_base = { version = "2.1.0", features = ["log", "fastdate", "macro", "parking_lot"] }
