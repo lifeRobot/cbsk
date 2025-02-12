@@ -10,8 +10,8 @@ the main functions include async pool and signal::run
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "2.1.0" }
-cbsk_run = { version = "2.1.0" }
+cbsk_base = { version = "2.1.1" }
+cbsk_run = { version = "2.1.1" }
 ```
 
 main.rs file :

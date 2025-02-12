@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_file"
-version = "2.1.0"
+version = "2.1.1"
 edition = "2021"
 description = "cbsk_file is a simple file tool"
 readme = "Readme.md"
@@ -9,5 +9,4 @@ license = "MIT/Apache-2.0"
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_file"
 
 [dependencies]
-#cbsk_base = { path = "../cbsk_base", features = ["macro", "log"] }
-cbsk_base = { version = "2.1.0", features = ["macro", "log"] }
+cbsk_base = { version = "2.1.1", features = ["macro", "log"] }

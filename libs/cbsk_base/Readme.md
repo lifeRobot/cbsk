@@ -6,13 +6,13 @@ cbsk_base also supports some custom trait, like ToJson,FromJson and some macro
 
 | name                                                        | git                                                 | version |  
 |-------------------------------------------------------------|-----------------------------------------------------|---------|
-| [tokio](https://crates.io/crates/tokio)                     | [github](https://github.com/tokio-rs/tokio)         | 1.42.0  |
+| [tokio](https://crates.io/crates/tokio)                     | [github](https://github.com/tokio-rs/tokio)         | 1.43.0  |
 | [anyhow](https://crates.io/crates/anyhow)                   | [github](https://github.com/dtolnay/anyhow)         | 1.0.95  |
-| [once_cell](https://crates.io/crates/once_cell)             | [github](https://github.com/matklad/once_cell)      | 1.20.2  |
+| [once_cell](https://crates.io/crates/once_cell)             | [github](https://github.com/matklad/once_cell)      | 1.20.3  |
 | [serde](https://crates.io/crates/serde)                     | [github](https://github.com/serde-rs/serde)         | 1.0.217 |
-| [serde_json](https://crates.io/crates/serde_json)           | [github](https://github.com/serde-rs/json)          | 1.0.134 |
-| [log](https://crates.io/crates/log)                         | [github](https://github.com/rust-lang/log)          | 0.4.22  |
-| [async-trait](https://crates.io/crates/async-trait)         | [github](https://github.com/dtolnay/async-trait)    | 0.1.83  |
+| [serde_json](https://crates.io/crates/serde_json)           | [github](https://github.com/serde-rs/json)          | 1.0.138 |
+| [log](https://crates.io/crates/log)                         | [github](https://github.com/rust-lang/log)          | 0.4.25  |
+| [async-trait](https://crates.io/crates/async-trait)         | [github](https://github.com/dtolnay/async-trait)    | 0.1.86  |
 | [async-recursion](https://crates.io/crates/async-recursion) | [github](https://github.com/dcchut/async-recursion) | 1.1.1   |
 | [parking_lot](https://crates.io/crates/parking_lot)         | [github](https://github.com/Amanieu/parking_lot)    | 0.12.3  |
 | [fastdate](https://crates.io/crates/fastdate)               | [github](https://github.com/rbatis/fastdate)        | 0.3.34  |
@@ -26,7 +26,7 @@ the struct impl Deserialize, will auto impl FromJson
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "2.1.0", features = ["serde_derive_json"] }
+cbsk_base = { version = "2.1.1", features = ["serde_derive_json"] }
 ```
 
 main.rs file :
@@ -57,7 +57,7 @@ fn main() {
 Cargo.toml file :
 
 ```toml
-cbsk_base = { version = "2.1.0", features = ["macro", "anyhow"] }
+cbsk_base = { version = "2.1.1", features = ["macro", "anyhow"] }
 ```
 
 main.rs file :
@@ -98,7 +98,7 @@ fn exec_option() {
 Cargo.toml file:
 
 ```toml
-cbsk_base = { version = "2.1.0", features = ["root_path"] }
+cbsk_base = { version = "2.1.1", features = ["root_path"] }
 ```
 
 main.rs file:
