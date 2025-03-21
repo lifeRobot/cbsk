@@ -22,8 +22,8 @@ Cargo.toml file:
 
 ```toml
 fast_log = "1.7.6"
-cbsk_base = "2.1.1"
-cbsk_socket_tokio = { version = "2.1.1", default-features = false, features = ["tcp_server"] }
+cbsk_base = "2.1.2"
+cbsk_socket_tokio = { version = "2.1.2", default-features = false, features = ["tcp_server"] }
 ```
 
 main.rs file:
@@ -72,8 +72,8 @@ Cargo.toml file:
 
 ```toml
 fast_log = "1.7.6"
-cbsk_base = "2.1.1"
-cbsk_socket_tokio = "2.1.1" 
+cbsk_base = "2.1.2"
+cbsk_socket_tokio = "2.1.2" 
 ```
 
 main.rs file:

@@ -1,7 +1,7 @@
 [package]
 name = "cbsk_log_rayon"
-version = "2.1.1"
-edition = "2021"
+version = "2.1.2"
+edition = "2024"
 description = "cbsk_log_rayon is a log tool, using tokio as the runtime"
 readme = "Readme.md"
 authors = ["The cbsk developers"]
@@ -11,12 +11,12 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log_rayon"
 
 [dependencies]
 crossbeam = "0.8.4"
-zip = { version = "2.2.2", default-features = false, features = ["deflate"], optional = true }
+zip = { version = "2.4.2", default-features = false, features = ["deflate"], optional = true }
 
-cbsk_base = { version = "2.1.1", features = ["log", "parking_lot"] }
-cbsk_file = { version = "2.1.1", optional = true }
-cbsk_log = "2.1.1"
-cbsk_timer = "2.1.1"
+cbsk_base = { version = "2.1.2", features = ["log", "parking_lot"] }
+cbsk_file = { version = "2.1.2", optional = true }
+cbsk_log = "2.1.2"
+cbsk_timer = "2.1.2"
 
 [features]
 default = ["dir_pack"]

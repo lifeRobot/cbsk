@@ -1,7 +1,7 @@
 [package]
 name = "cbsk_socket"
-version = "2.1.1"
-edition = "2021"
+version = "2.1.2"
+edition = "2024"
 description = "cbsk_socket is a socket callback tool"
 readme = "Readme.md"
 authors = ["The cbsk developers"]
@@ -13,7 +13,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_socket"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { version = "2.1.1", optional = true }
+cbsk_base = { version = "2.1.2", optional = true }
 
 [features]
 tcp_server = ["cbsk_base/fastdate"]

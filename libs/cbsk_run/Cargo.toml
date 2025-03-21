@@ -1,7 +1,7 @@
 [package]
 name = "cbsk_run"
-version = "2.1.1"
-edition = "2021"
+version = "2.1.2"
+edition = "2024"
 description = "cbsk_run is async pool tool"
 readme = "Readme.md"
 authors = ["The cbsk developers"]
@@ -12,4 +12,4 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_run"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-cbsk_base = { version = "2.1.1", features = ["tokio_full", "anyhow", "log"] }
+cbsk_base = { version = "2.1.2", features = ["tokio_full", "anyhow", "log"] }

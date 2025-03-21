@@ -1,7 +1,7 @@
 [package]
 name = "cbsk_dtp"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 description = "cbsk_dtp is a dynamic thread pool"
 readme = "Readme.md"
 authors = ["The cbsk developers"]
