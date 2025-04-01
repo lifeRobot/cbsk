@@ -1,8 +1,8 @@
-use std::{fs, io};
+use cbsk_base::log;
 use std::fs::File;
 use std::io::Read;
 use std::path::Path;
-use cbsk_base::log;
+use std::{fs, io};
 pub use write::*;
 
 pub mod write;
@@ -10,22 +10,30 @@ pub mod write;
 /// directory separator
 #[allow(non_upper_case_globals)]
 pub static separator: char = {
-    #[cfg(windows)] { '\\' }
-    #[cfg(not(windows))] '/'
+    #[cfg(windows)]
+    {
+        '\\'
+    }
+    #[cfg(not(windows))]
+    '/'
 };
 
 /// directory separator
 #[allow(non_upper_case_globals)]
 pub static separator_str: &str = {
-    #[cfg(windows)] { "\\" }
-    #[cfg(not(windows))] "/"
+    #[cfg(windows)]
+    {
+        "\\"
+    }
+    #[cfg(not(windows))]
+    "/"
 };
 
 /// try manipulate file fail log
 macro_rules! err_log {
     ($f:ident($file:expr),$name:expr) => {
         if let Err(e) = $f($file) {
-            log::error!("{}[{:?}] fail: {e:?}",$name,$file);
+            log::error!("{}[{:?}] fail: {e:?}", $name, $file);
         }
     };
 }
@@ -35,7 +43,7 @@ macro_rules! err_log {
 /// if create fail, will be call log::error<br />
 /// see [log::error], [try_create_dir]
 pub fn create_dir(dir: &Path) {
-    err_log!(try_create_dir(dir),"create dir");
+    err_log!(try_create_dir(dir), "create dir");
 }
 
 /// try create dir if does not exists<br />
@@ -44,7 +52,7 @@ pub fn try_create_dir(dir: &Path) -> io::Result<()> {
     if dir.exists() {
         return Ok(());
     }
-    just_create_dir(dir)
+    fs::create_dir_all(dir)
 }
 
 /// create file if does not exists<br />
@@ -52,7 +60,7 @@ pub fn try_create_dir(dir: &Path) -> io::Result<()> {
 /// see [log::error], [try_create_file]<br />
 /// if y want to create or open file, see [open_create_file]
 pub fn create_file(file: &Path) {
-    err_log!(try_create_file(file),"create file");
+    err_log!(try_create_file(file), "create file");
 }
 
 /// try create file if does not exists<br />
@@ -76,17 +84,8 @@ fn just_create_parent_dir(dir: &Path) -> io::Result<()> {
     // not exists and not a dir
     // if get parent dir fail, maybe dir is root dir, return Ok
     // maybe have bug
-    let parent = cbsk_base::match_some_return!(dir.parent(),Ok(()));
+    let parent = cbsk_base::match_some_return!(dir.parent(), Ok(()));
     fs::create_dir_all(parent)
-}
-
-/// just create dir, not check exists
-fn just_create_dir(dir: &Path) -> io::Result<()> {
-    if dir.is_dir() {
-        return fs::create_dir_all(dir);
-    }
-
-    just_create_parent_dir(dir)
 }
 
 /// read all all to vec<br />
@@ -142,7 +141,11 @@ pub fn recreate_file(path: &Path) -> io::Result<File> {
 /// open or create file
 pub fn open_create_file(path: &Path) -> io::Result<File> {
     if path.exists() {
-        return File::options().read(true).write(true).append(true).open(path);
+        return File::options()
+            .read(true)
+            .write(true)
+            .append(true)
+            .open(path);
     }
 
     just_create_parent_dir(path)?;
@@ -153,12 +156,21 @@ pub fn open_create_file(path: &Path) -> io::Result<File> {
 /// change by File::create method, File::create not read permission<br />
 /// just open file see [just_open_file]
 pub fn just_create_file(path: &Path) -> io::Result<File> {
-    File::options().read(true).write(true).create(true).truncate(true).open(path)
+    File::options()
+        .read(true)
+        .write(true)
+        .create(true)
+        .truncate(true)
+        .open(path)
 }
 
 /// just open file, not creating directories. will be create fail when directories is not exists<br /><br />
 /// change by File::open method, File::open not write permission<br />
 /// just create file see [just_create_file]
 pub fn just_open_file(path: &Path) -> io::Result<File> {
-    File::options().read(true).write(true).append(true).open(path)
+    File::options()
+        .read(true)
+        .write(true)
+        .append(true)
+        .open(path)
 }

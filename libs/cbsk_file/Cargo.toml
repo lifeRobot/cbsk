@@ -1,6 +1,6 @@
 [package]
 name = "cbsk_file"
-version = "2.1.2"
+version = "2.1.3"
 edition = "2024"
 description = "cbsk_file is a simple file tool"
 readme = "Readme.md"
