@@ -1,5 +1,6 @@
 use std::io;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 use cbsk_base::{log, tokio};
 use cbsk_base::tokio::io::AsyncWriteExt;
@@ -23,6 +24,8 @@ pub struct TcpServer {
     pub cb: Arc<Box<dyn TcpServerCallBack>>,
     /// tcp read data len
     buf_len: usize,
+    /// stop tcp server
+    stopped: Arc<AtomicBool>,
 }
 
 /// data init etc
@@ -34,7 +37,7 @@ impl TcpServer {
     }
 
     pub fn new_with_buf_len<C: TcpServerCallBack>(conf: Arc<TcpServerConfig>, cb: C, buf_len: usize) -> Self {
-        Self { conf, cb: Arc::new(Box::new(cb)), buf_len }
+        Self { conf, cb: Arc::new(Box::new(cb)), buf_len, stopped: Arc::new(AtomicBool::new(false)) }
     }
 }
 
@@ -53,6 +56,12 @@ impl TcpServer {
         tokio::spawn(async move { tcp_server.start().await; })
     }
 
+    /// stop tcp server
+    #[inline]
+    pub fn stop(&self) {
+        self.stopped.store(true, Ordering::Release);
+    }
+
     /// try start tcp server
     async fn try_start(&self) -> io::Result<()> {
         let listener = TcpListener::bind(self.conf.addr).await?;
@@ -61,6 +70,8 @@ impl TcpServer {
         log::info!("{} listener TCP[{}] success",conf.log_head,conf.addr);
         // loop waiting for client to connect
         loop {
+            // if stop the server, return function
+            if self.stopped.load(Ordering::Acquire) { return Ok(()); }
             if let Err(e) = self.try_accept(&listener).await {
                 log::error!("{} wait tcp accept error. wait for the next accept in three seconds. error: {:?}",conf.log_head,e);
                 tokio::time::sleep(Duration::from_secs(3)).await;
@@ -86,9 +97,9 @@ impl TcpServer {
     fn read_spawn(&self, client: Arc<TcpServerClient>, read: OwnedReadHalf) {
         let tcp_server = self.clone();
         tokio::spawn(async move {
-            let read_headle = tcp_server.try_read_spawn(client.clone(), read);
+            let read_handle = tcp_server.try_read_spawn(client.clone(), read);
 
-            client.wait_read_handle_finished(read_headle, tcp_server.conf.read_time_out, || async {
+            client.wait_read_handle_finished(read_handle, tcp_server.conf.read_time_out, || async {
                 // it is possible that TCP has not been closed here, so notify to close it once
                 // ignoring notification results
                 let _ = client.write.write().await.shutdown().await;
@@ -108,7 +119,7 @@ impl TcpServer {
         tokio::spawn(async move {
             let result =
                 client.try_read_data_tokio(read, tcp_server.buf_len, tcp_server.conf.read_time_out, "client", || async {
-                    false
+                    tcp_server.stopped.load(Ordering::Acquire)
                 }, |data| async {
                     tcp_server.cb.recv(data, client.clone()).await
                 }).await;
