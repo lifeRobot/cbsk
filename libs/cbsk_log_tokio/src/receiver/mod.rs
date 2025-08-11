@@ -21,12 +21,12 @@ impl Receiver {
     }
 
     /// get read lock
-    pub fn read(&self) -> ReadGuard {
+    pub fn read(&self) -> ReadGuard<'_> {
         ReadGuard::new(self.recv.read())
     }
 
     /// get write lock
-    pub fn write(&self) -> WriteGuard {
+    pub fn write(&self) -> WriteGuard<'_> {
         WriteGuard::new(self.recv.write())
     }
 }

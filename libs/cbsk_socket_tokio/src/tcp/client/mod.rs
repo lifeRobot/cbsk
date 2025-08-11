@@ -128,6 +128,7 @@ impl TcpClient {
     /// notify tcp to re connect<br />
     /// will shutdown tcp connection, if [`TcpClientConfig`] reconn is disable<br />
     /// will shutdown and create new tcp connection,if [`TcpClientConfig`] reconn is enable
+    #[inline]
     pub async fn re_conn(&self) {
         self.shutdown().await;
     }
