@@ -12,7 +12,7 @@ repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_timer"
 
 [dependencies]
 cbsk_base = { version = "2.1.2", features = ["log", "macro", "fastdate", "parking_lot"] }
-rayon = "1.10.0"
+rayon = "1.11.0"
 
 [features]
 debug_mode = []
