@@ -37,6 +37,8 @@ pub struct TcpClient {
     pub timeout_time: Arc<AtomicI64>,
     /// is ignore once time check
     pub ignore_once: Arc<AtomicBool>,
+    /// is waiting stop
+    wait_stop: Arc<AtomicBool>,
     /// tcp client writer
     write: Arc<RwLock<TcpWrite>>,
     /// is wait callback
@@ -112,6 +114,7 @@ impl TcpClient {
             recv_time: AtomicI64::new(Self::now()).into(),
             timeout_time: AtomicI64::new(Self::now()).into(),
             ignore_once: AtomicBool::default().into(),
+            wait_stop: AtomicBool::default().into(),
             write: Arc::new(RwLock::new(TcpWrite::default())),
             wait_callback: Arc::new(Default::default()),
             buf_len,
@@ -136,10 +139,9 @@ impl TcpClient {
     /// shutdown tcp server connect
     async fn shutdown(&self) {
         let mut write = self.write.write().await;
-        if let Some(write) = write.write.as_mut() {
-            if let Err(e) = write.shutdown().await {
-                log::error!("shutdown tcp error: {e:?}");
-            }
+        let owner_write = cbsk_base::match_some_return!(write.write.as_mut(),self.wait_stop.store(true, Ordering::Release));
+        if let Err(e) = owner_write.shutdown().await {
+            log::error!("shutdown tcp error: {e:?}");
         }
 
         // as long as shutdown is called, write will be left blank directly
@@ -240,7 +242,12 @@ impl TcpClient {
     async fn try_conn(&self) -> anyhow::Result<TcpStream> {
         log::info!("{} try connect to tcp server",self.conf.log_head);
         let tcp_stream = TcpStream::connect(self.conf.addr);
-        let tcp_stream = tokio::time::timeout(self.conf.conn_time_out, tcp_stream).await??;
+        let mut tcp_stream = tokio::time::timeout(self.conf.conn_time_out, tcp_stream).await??;
+
+        if self.wait_stop.load(Ordering::Acquire) {
+            tcp_stream.shutdown().await?;
+            return Err(anyhow::anyhow!("need shutdown"));
+        }
 
         log::info!("{} tcp server connect success",self.conf.log_head);
         Ok(tcp_stream)

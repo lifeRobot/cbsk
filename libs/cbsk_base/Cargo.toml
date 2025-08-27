@@ -17,7 +17,7 @@ anyhow = { version = "1.0.99", optional = true }
 once_cell = { version = "1.21.1", optional = true }
 
 serde = { version = "1.0.219", optional = true }
-serde_json = { version = "1.0.142", optional = true }
+serde_json = { version = "1.0.143", optional = true }
 
 log = { version = "0.4.26", optional = true }
 
