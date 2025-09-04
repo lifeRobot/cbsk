@@ -19,7 +19,7 @@ once_cell = { version = "1.21.1", optional = true }
 serde = { version = "1.0.219", optional = true }
 serde_json = { version = "1.0.143", optional = true }
 
-log = { version = "0.4.26", optional = true }
+log = { version = "0.4.27", optional = true }
 
 async-trait = { version = "0.1.89", optional = true }
 async-recursion = { version = "1.1.1", optional = true }
