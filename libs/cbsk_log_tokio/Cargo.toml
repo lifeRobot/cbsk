@@ -10,7 +10,7 @@ categories = ["data-structures"]
 repository = "https://github.com/lifeRobot/cbsk/tree/master/libs/cbsk_log_tokio"
 
 [dependencies]
-zip = { version = "4.6.1", default-features = false, features = ["deflate"], optional = true }
+zip = { version = "5.0.0", default-features = false, features = ["deflate"], optional = true }
 
 cbsk_base = { version = "2.1.2", features = ["log", "tokio_full", "parking_lot", "async-trait"] }
 cbsk_file = { version = "2.1.2", optional = true }
