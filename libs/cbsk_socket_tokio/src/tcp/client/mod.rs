@@ -246,6 +246,7 @@ impl TcpClient {
 
         if self.wait_stop.load(Ordering::Acquire) {
             tcp_stream.shutdown().await?;
+            self.wait_stop.store(false, Ordering::Release);
             return Err(anyhow::anyhow!("need shutdown"));
         }
 
