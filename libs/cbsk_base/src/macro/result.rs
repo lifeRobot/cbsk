@@ -4,7 +4,7 @@
 #[macro_export]
 macro_rules! match_result_return {
     ($result:expr) => {
-        $crate::match_some_return!($result,())
+        $crate::match_result_return!($result,())
     };
     ($result:expr,$r:expr) => {
         $crate::match_result_exec!($result,return $r)
