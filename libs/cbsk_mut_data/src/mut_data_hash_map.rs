@@ -23,14 +23,16 @@ impl<K: Eq + Hash, V> MutDataHashMap<K, V> {
     /// get mut data<br />
     /// more see [HashMap::get_mut]
     pub fn get_mut<Q>(&self, key: &Q) -> Option<MutDataRef<V>>
-        where K: Borrow<Q>,
-              Q: Hash + Eq + ?Sized {
+    where
+        K: Borrow<Q>,
+        Q: Hash + Eq + ?Sized,
+    {
         self.as_mut().get_mut(key).map(MutDataRef::new_ref)
     }
 
     /// entry data<br />
     /// more see [HashMap::entry]
-    pub fn entry(&self, key: K) -> Entry<K, V> {
+    pub fn entry(&self, key: K) -> Entry<'_, K, V> {
         self.as_raw_mut().entry(key)
     }
 

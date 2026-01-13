@@ -32,7 +32,7 @@ impl<T> MutDataVec<T> {
     }
 
     /// drain data, more see [Vec::drain]
-    pub fn drain(&self, range: impl RangeBounds<usize>) -> Drain<T> {
+    pub fn drain(&self, range: impl RangeBounds<usize>) -> Drain<'_, T> {
         self.as_raw_mut().drain(range)
     }
 
