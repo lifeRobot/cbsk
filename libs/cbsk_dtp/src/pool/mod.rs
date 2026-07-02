@@ -43,7 +43,7 @@ impl ThreadPool {
     }
 
     /// create by worker
-    fn new_woker(config: PoolConfig, worker: Worker<Task>) -> Self {
+    fn new_worker(config: PoolConfig, worker: Worker<Task>) -> Self {
         Self { config, worker, jobs: MutDataVec::with_capacity(1).into() }
     }
 

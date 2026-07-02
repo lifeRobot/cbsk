@@ -19,6 +19,9 @@ macro_rules! match_some_continue {
     ($opt:expr) => {
         $crate::match_some_exec!($opt,continue);
     };
+    ($opt:expr,$exec:expr) => {
+        $crate::match_some_exec!($opt,{$exec;continue});
+    }
 }
 
 /// match Option <br />

@@ -68,6 +68,9 @@ impl LogRuntime {
             if !Self::filter(&record, config) {
                 format_str.push_str(config.format.format(&record).as_str());
             }
+
+            // has filter, running set false
+            running.store(false, Ordering::Release);
         }
 
         format_str

@@ -21,6 +21,8 @@ pub trait DateTimeSerialize {
     /// get second
     fn get_second(&self) -> u8;
 
+    fn get_ms(&self) -> u16;
+
     /// get nanosecond
     fn get_nano(&self) -> u32;
 
@@ -37,6 +39,11 @@ pub trait DateTimeSerialize {
     /// get yyyy-mm-dd hh:mm:ss.nnnnnnnnn format datetime
     fn yyyy_mm_dd_hh_mm_ss_n(&self) -> String {
         format!("{}.{:09}", self.yyyy_mm_dd_hh_mm_ss(), self.get_nano())
+    }
+
+    /// get yyyy-mm-dd hh:mm:ss.nnn format datetime
+    fn yyyy_mm_dd_hh_mm_ss_nnn(&self) -> String {
+        format!("{}.{:03}", self.yyyy_mm_dd_hh_mm_ss(), self.get_ms())
     }
 
     /// get yyyy-mm-dd hh:mm:ss format datetime
@@ -117,5 +124,8 @@ impl DateTimeSerialize for fastdate::DateTime {
     }
     fn get_nano(&self) -> u32 {
         self.nano()
+    }
+    fn get_ms(&self) -> u16 {
+        self.ms()
     }
 }

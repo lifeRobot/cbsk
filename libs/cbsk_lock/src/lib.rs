@@ -1,7 +1,5 @@
 use std::sync::atomic::{AtomicBool, Ordering};
 
-// TODO Test lock
-
 #[derive(Default)]
 pub struct TestLock {
     pub state: AtomicBool,

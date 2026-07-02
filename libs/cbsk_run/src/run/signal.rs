@@ -17,8 +17,8 @@ pub async fn ctrl_c_stop_handles<T>(handles: &[JoinHandle<T>]) {
 
     // monitor ctrl success
     log::warn!("the program has received an end command and is about to exit the program");
-    handles.iter().for_each(|handle| { handle.abort(); });
     log::logger().flush();// wait log flush
+    handles.iter().for_each(|handle| { handle.abort(); });
     std::process::exit(0);// exit program
 }
 

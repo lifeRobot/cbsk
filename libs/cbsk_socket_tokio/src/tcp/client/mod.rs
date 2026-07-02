@@ -139,7 +139,9 @@ impl TcpClient {
     /// shutdown tcp server connect
     async fn shutdown(&self) {
         let mut write = self.write.write().await;
-        let owner_write = cbsk_base::match_some_return!(write.write.as_mut(),self.wait_stop.store(true, Ordering::Release));
+        let Some(owner_write) = write.write.as_mut() else {
+            return self.wait_stop.store(true, Ordering::Release);
+        };
         if let Err(e) = owner_write.shutdown().await {
             log::error!("shutdown tcp error: {e:?}");
         }

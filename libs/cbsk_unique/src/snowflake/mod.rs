@@ -47,6 +47,19 @@ impl SnowFlake {
         self
     }
 
+    /// set epoch
+    #[inline]
+    pub fn epoch(&mut self, epoch: u128) {
+        self.epoch = epoch;
+    }
+
+    /// set worker id
+    #[inline]
+    pub fn worker_id(&mut self, worker_id: u16) {
+        if worker_id > Self::MAX_WORKER_ID { return; }
+        self.worker_id = u128::from(worker_id) << 12;
+    }
+
     /// get epch
     pub fn get_epoch(&self) -> u128 {
         self.epoch

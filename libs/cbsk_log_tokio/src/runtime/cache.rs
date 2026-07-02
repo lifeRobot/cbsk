@@ -23,9 +23,9 @@ impl Default for LogCache {
 }
 
 /// log cache is empty
+#[inline]
 pub fn is_empty() -> bool {
-    let b = log_cache.recv.read().is_empty();
-    b
+    log_cache.recv.read().is_empty()
 }
 
 /// push log to cache

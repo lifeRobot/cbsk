@@ -77,6 +77,9 @@ impl LogRuntime {
                 format_str.push_str(config.format.format(&record).as_str());
                 break;
             }
+
+            // has filter, running set false
+            running.store(false, Ordering::Release);
         }
 
         format_str

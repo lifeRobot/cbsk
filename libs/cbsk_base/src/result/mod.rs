@@ -5,15 +5,18 @@ pub mod base_result;
 #[cfg(feature = "macro")]
 macro_rules! build_result {
     ($result:tt)=>{
+        $crate::build_result!($result,i64);
+    };
+    ($result:tt,$code_type:ty)=>{
         /// build base function
         impl<T: Serialize> $result<T> {
             /// build only code and data result
-            pub fn build_data(code: i64, data: T) -> Self {
+            pub fn build_data(code: $code_type, data: T) -> Self {
                 Self { code, msg: None, data: Some(data) }
             }
 
             /// build custom result
-            pub fn build_msg_data(code: i64, msg: impl Into<String>, data: T) -> Self{
+            pub fn build_msg_data(code: $code_type, msg: impl Into<String>, data: T) -> Self{
                 Self { code, msg: Some(msg.into()), data: Some(data) }
             }
 
@@ -41,7 +44,7 @@ macro_rules! build_result {
         /// build base function to any type
         impl<T> $result<T> {
             /// build only code and msg result
-            pub fn build_msg(code: i64, msg: impl Into<String>) -> Self{
+            pub fn build_msg(code: $code_type, msg: impl Into<String>) -> Self{
                 Self { code, msg: Some(msg.into()), data: None }
             }
 
